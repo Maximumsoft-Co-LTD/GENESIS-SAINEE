@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Session ended — Claude will now append session summary to today's daily log.\""
+          }
+        ]
+      }
+    ]
+  }
+}
