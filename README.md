@@ -1,16 +1,16 @@
 # Sainee's Dev Log
 
-บันทึกการทำงานรายวัน — research, สิ่งที่ทำ, decision และ Claude sessions
+บันทึกการทำงานรายวัน — research, งานที่ทำ, และ Claude sessions
 
 ## โครงสร้าง
 
 | Folder | ใช้สำหรับ |
 |--------|----------|
-| `daily/` | log รายวัน (research, งานที่ทำ, Claude sessions) |
-| `skills/` | สิ่งที่เรียนรู้/ทำได้ใหม่ |
-| `rules/` | กฎหรือ convention ที่ใช้ |
-| `research/` | research ลึกๆ ที่แยกไฟล์ต่างหาก |
+| `daily/` | log รายวัน — บอกว่าวันนี้ทำอะไร research อะไร และ link ไปไฟล์ research |
+| `research/` | เนื้อหา research แต่ละเรื่อง (ไม่มีวันที่ — ดูจาก daily แทน) |
 
-## Log ล่าสุด
+## Daily Logs
+- [2026-06-09](daily/2026-06-09.md)
 
-<!-- AUTO-UPDATED: do not edit this section manually -->
+## Research
+- [System Archaeology](research/system-archaeology.md)

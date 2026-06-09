@@ -1,7 +1,6 @@
 # System Archaeology
 
-**วันที่:** 2026-06-09  
-**Session:** [2026-06-09 log](../daily/2026-06-09.md)
+**Daily log:** [2026-06-09](../daily/2026-06-09.md)
 
 ---
 
