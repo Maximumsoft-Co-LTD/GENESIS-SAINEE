@@ -21,6 +21,7 @@
 | Command | ใช้ทำอะไร |
 |---------|----------|
 | [/archaeology](commands/archaeology.md) | ถอด DNA service เดียวลึกๆ — 7 patterns + HTML + MD |
+| [/archaeology-5layer](commands/archaeology-5layer.md) | Top-Down 5 layers (manual) — output markdown, เหมาะกับ migrate v11 |
 
 ## Outputs
 | ไฟล์ | สร้างจาก | วันที่ |
