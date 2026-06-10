@@ -2,6 +2,13 @@
 
 repo นี้คือ personal dev log ของ Sainee
 
+## ⚠️ กฎสำคัญที่สุด: ก่อน commit ต้องถามก่อนเสมอ
+
+- **ห้าม** `git commit` หรือ `git push` เองโดยไม่ได้รับอนุญาตจาก user
+- แก้ไฟล์ / สร้างไฟล์ ทำได้ตามปกติ — แต่ขั้นตอน commit/push ต้องหยุดถามก่อน
+- ก่อนถาม ให้สรุปสั้นๆ ว่า: จะ commit ไฟล์ไหนบ้าง + commit message ว่าอะไร
+  แล้วรอให้ user ยืนยันก่อนค่อยรัน
+
 ## หน้าที่ของ Claude ใน repo นี้
 
 ทุกครั้งที่ทำงานใน session นี้ เมื่อ session จบ ให้ append สรุปลงใน `daily/YYYY-MM-DD.md` (วันปัจจุบัน) ใต้ section `## Claude Sessions` โดยอัตโนมัติ
@@ -19,11 +26,10 @@ repo นี้คือ personal dev log ของ Sainee
 ## กฎการเขียน log
 - ใช้ภาษาไทยได้
 - สรุปให้กระชับ อ่านแล้วรู้เรื่องภายใน 10 วินาที
-- ถ้า session นี้ได้ skill หรือ rule ใหม่ ให้บอก user ด้วยว่าควรสร้างไฟล์ใน `skills/` หรือ `rules/`
 - ถ้า research ลึก ให้บอก user ว่าควรแยกไฟล์ไว้ใน `research/`
+- ถ้ามี plan จาก plan mode ที่อยากเก็บ ให้ก๊อปลง `plans/YYYY-MM-DD-ชื่องาน.md`
 
 ## โครงสร้าง repo
 - `daily/` — log รายวัน
-- `skills/` — สิ่งที่เรียนรู้ใหม่
-- `rules/` — convention / กฎที่ใช้
-- `research/` — research ลึกๆ แยกไฟล์
+- `research/` — research ลึกๆ แยกไฟล์ (ไม่มีวันที่ — ดูบริบทจาก daily)
+- `plans/` — แผนงานเต็มๆ จาก plan mode
