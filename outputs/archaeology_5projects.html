@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System Archaeology - 5 Projects</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body{transition:background 0.3s,color 0.3s}</style>
+</head>
+<body id="body" style="background:#0f172a;color:#cbd5e1;min-height:100vh;font-family:sans-serif">
+<div style="max-width:1280px;margin:0 auto;padding:24px 16px">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px">
+    <div>
+      <h1 style="font-size:1.5rem;font-weight:800;color:#fff;margin:0">System Archaeology</h1>
+      <p style="color:#94a3b8;font-size:0.85rem;margin:4px 0 0">5 Projects — Maximumsoft Co., LTD | 2026-06-09</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="toggleLang()" id="lbtn"
+        style="padding:7px 16px;border-radius:8px;background:#4f46e5;color:#fff;border:1px solid #6366f1;font-size:0.82rem;cursor:pointer;font-weight:700">
+        🇹🇭 ภาษาไทย
+      </button>
+      <button onclick="toggleDark()" id="dtbtn"
+        style="padding:7px 16px;border-radius:8px;background:#334155;color:#fff;border:1px solid #475569;font-size:0.82rem;cursor:pointer">
+        Light Mode
+      </button>
+    </div>
+  </div>
+
+  <!-- Project badges -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px">
+    <span style="background:#3b82f6;color:#fff;padding:2px 10px;border-radius:9999px;font-size:0.72rem;font-weight:700">3rd-payment (Go :8081)</span>
+    <span style="background:#8b5cf6;color:#fff;padding:2px 10px;border-radius:9999px;font-size:0.72rem;font-weight:700">GOTOPOPOFFICE (Go :7777)</span>
+    <span style="background:#22c55e;color:#fff;padding:2px 10px;border-radius:9999px;font-size:0.72rem;font-weight:700">telesale-service-mootui</span>
+    <span style="background:#f59e0b;color:#fff;padding:2px 10px;border-radius:9999px;font-size:0.72rem;font-weight:700">topupserie_mootui</span>
+    <span style="background:#6b7280;color:#fff;padding:2px 10px;border-radius:9999px;font-size:0.72rem;font-weight:700">TOPUP_OFFICE (Nuxt2)</span>
+  </div>
+
+  <div id="tabBar" style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:20px;border-bottom:1px solid #334155;padding-bottom:8px"></div>
+  <div id="tabContent"></div>
+</div>
+
+<script>
+var dark = true;
+var lang = 'en';
+
+// ── Static UI translations ──────────────────────────────────────────────────
+var T = {
+  en: {
+    tabs: ['Risk Scorecard','Boundary Map','Dependencies','Data Flows','Trust Boundaries','Dead Code','Failure Modes','Tech Debt'],
+    risk_title:   'Risk Scorecard',
+    risk_cols:    ['Project','Category','Finding','Severity'],
+    bound_title:  'System Boundary Map',
+    bound_cols:   ['Project','Port','Protocol','Ingress (callers)','Egress (calls out)','Auth'],
+    deps_title:   'Dependencies',
+    deps_cols:    ['Project','Package','Version','Type','Risk'],
+    flows_title:  'Data Flows',
+    flow_src:     'Source',
+    flow_via:     'Via',
+    flow_dst:     'Destination',
+    flow_data:    'Data',
+    flow_auth:    'Auth',
+    trust_title:  'Trust Boundaries',
+    trust_cols:   ['Boundary','Trust Level','Controls in place','Gaps / Risks'],
+    dead_title:   'Dead Code / Unreachable Paths',
+    dead_cols:    ['Project','Location','Symbol','Finding'],
+    fail_title:   'Failure Modes',
+    fail_cols:    ['Project','Scenario','Impact','Likelihood','Mitigation','Gap'],
+    debt_title:   'Tech Debt',
+    debt_cols:    ['Project','Item','Detail','Priority'],
+  },
+  th: {
+    tabs: ['คะแนนความเสี่ยง','แผนที่ระบบ','Dependencies','Data Flows','ขอบเขตความน่าเชื่อถือ','Dead Code','สถานการณ์ล่ม','หนี้เทคนิค'],
+    risk_title:   'คะแนนความเสี่ยง',
+    risk_cols:    ['โปรเจค','หมวด','ปัญหาที่พบ','ความรุนแรง'],
+    bound_title:  'แผนที่ขอบเขตระบบ',
+    bound_cols:   ['โปรเจค','Port','Protocol','ผู้เรียกเข้ามา','เรียกออกไปหา','การยืนยันตัวตน'],
+    deps_title:   'Dependencies',
+    deps_cols:    ['โปรเจค','Package','Version','ประเภท','ความเสี่ยง'],
+    flows_title:  'Data Flows — เส้นทางข้อมูล',
+    flow_src:     'แหล่งต้นทาง',
+    flow_via:     'ผ่าน',
+    flow_dst:     'ปลายทาง',
+    flow_data:    'ข้อมูลที่ส่ง',
+    flow_auth:    'การยืนยันตัวตน',
+    trust_title:  'ขอบเขตความน่าเชื่อถือ',
+    trust_cols:   ['ขอบเขต','ระดับความน่าเชื่อถือ','มาตรการที่มี','ช่องโหว่ / ความเสี่ยง'],
+    dead_title:   'Dead Code — โค้ดที่ไม่ได้ใช้งาน',
+    dead_cols:    ['โปรเจค','ตำแหน่ง','ชื่อ','รายละเอียด'],
+    fail_title:   'สถานการณ์ที่ระบบอาจล่ม',
+    fail_cols:    ['โปรเจค','สถานการณ์','ผลกระทบ','โอกาสเกิด','มาตรการที่มี','ช่องโหว่'],
+    debt_title:   'หนี้เทคนิค (Tech Debt)',
+    debt_cols:    ['โปรเจค','รายการ','รายละเอียด','ลำดับความสำคัญ'],
+  }
+};
+
+// ── Data ───────────────────────────────────────────────────────────────────
+var D = {
+  risk: [
+    {p:'3rd-payment',cat:'Auth',
+     f:'No HMAC/signature verification on payment webhook callbacks — transactions accepted without cryptographic proof from 30+ providers',
+     f_th:'ไม่มีการตรวจ HMAC signature บน webhook callback — รับ transaction โดยไม่พิสูจน์ตัวตนจาก 30+ provider',
+     sev:'HIGH'},
+    {p:'3rd-payment',cat:'Secrets',
+     f:'MerchantToken stored plain in MongoDB; logged via fmt.Printf on errors',
+     f_th:'MerchantToken เก็บ plaintext ใน MongoDB; บันทึกลง log ผ่าน fmt.Printf เมื่อเกิด error',
+     sev:'HIGH'},
+    {p:'3rd-payment',cat:'Build',
+     f:'go 1.26 in go.mod — Go 1.26 does not exist; may break CI toolchains',
+     f_th:'go 1.26 ใน go.mod — Go 1.26 ไม่มีอยู่จริง; อาจทำให้ CI พัง',
+     sev:'MED'},
+    {p:'3rd-payment',cat:'Resilience',
+     f:'Telegram error notifier falls back to no-op silently; payment failures may go unnoticed',
+     f_th:'Telegram notifier ล้มเหลวโดยไม่แจ้ง — payment error อาจถูกมองข้าม',
+     sev:'MED'},
+    {p:'3rd-payment',cat:'MQ',
+     f:'RabbitMQ singleton with no dead-letter/retry config; failed messages dropped silently',
+     f_th:'RabbitMQ ไม่มี dead-letter queue และ retry — message ที่ล้มเหลวหายโดยไม่มีการแจ้งเตือน',
+     sev:'MED'},
+    {p:'GOTOPOPOFFICE',cat:'Auth',
+     f:'JWT key = SHA1(Host + ISO week number) — rotates weekly, predictable; all admin sessions invalidated every Monday',
+     f_th:'JWT key = SHA1(Host + รหัสสัปดาห์) — คาดเดาได้, หมุน key ทุกจันทร์ → admin ทุกคน logout พร้อมกัน',
+     sev:'HIGH'},
+    {p:'GOTOPOPOFFICE',cat:'Auth',
+     f:'DEMO department bypass: DeptCode "DEMO" skips DB user lookup entirely',
+     f_th:'DeptCode "DEMO" ข้ามการตรวจสอบ user ใน DB ไปเลย — bypass auth โดยสมบูรณ์',
+     sev:'HIGH'},
+    {p:'GOTOPOPOFFICE',cat:'Auth',
+     f:'Hardcoded LINE user ID (U875d254f9...) excluded from auth filter — magic constant in production',
+     f_th:'LINE UID ถูก hardcode ใน auth filter — magic constant ใน production ไม่ควรอยู่ที่นี่',
+     sev:'MED'},
+    {p:'GOTOPOPOFFICE',cat:'DB',
+     f:'ioutil.ReadFile for TLS cert (deprecated Go 1.16+); error suppressed — TLS silently disabled on cert failure',
+     f_th:'ใช้ ioutil.ReadFile (deprecated) โหลด TLS cert; suppress error → TLS ถูกปิดเงียบๆ เมื่อโหลด cert ล้มเหลว',
+     sev:'MED'},
+    {p:'GOTOPOPOFFICE',cat:'Redis',
+     f:'DelGame() calls FlushDB() — nukes entire Redis DB2, not targeted keys; catastrophic on wrong env',
+     f_th:'DelGame() เรียก FlushDB() แทนลบ key เฉพาะ — ลบ Redis DB2 ทั้งหมด หายนะถ้าเรียกผิด environment',
+     sev:'HIGH'},
+    {p:'telesale-service-mootui',cat:'Config',
+     f:'Redis DB index parsed from literal string "REDIS_DB" not os.Getenv — always DB 0 regardless of config',
+     f_th:'strconv.Atoi("REDIS_DB") — แปลง literal string ไม่ใช่ env var → Redis DB index เป็น 0 เสมอ',
+     sev:'HIGH'},
+    {p:'telesale-service-mootui',cat:'Auth',
+     f:'No authentication middleware on any route — all /api/v1/* endpoints publicly accessible',
+     f_th:'ไม่มี auth middleware เลยสักตัว — ทุก /api/v1/* เรียกได้โดยไม่ต้องยืนยันตัวตน',
+     sev:'HIGH'},
+    {p:'telesale-service-mootui',cat:'CORS',
+     f:'AllowedOrigins hardcoded to * in config.go regardless of HTTP_ENV',
+     f_th:'AllowedOrigins = * ทุก environment รวมถึง production',
+     sev:'MED'},
+    {p:'topupserie_mootui',cat:'Auth',
+     f:'verifySecret: if SECRET_KEY env is empty, auth passes for all callers — entire API exposed',
+     f_th:'SECRET_KEY ว่าง → ผ่าน auth ได้ทุก request — API เปิดโล่งทั้งหมด',
+     sev:'HIGH'},
+    {p:'topupserie_mootui',cat:'RateLimit',
+     f:'Rate-limit ban returns HTTP 200 with code 1 — clients cannot distinguish ban from success',
+     f_th:'ถูก ban คืน HTTP 200 — client แยกไม่ออกระหว่าง "ban" กับ "สำเร็จ", monitoring พลาด',
+     sev:'MED'},
+    {p:'topupserie_mootui',cat:'RateLimit',
+     f:'Hardcoded "TestRateLimit" username written to production agent_log — TODO confirms dev artifact',
+     f_th:'"TestRateLimit" ถูก hardcode ลง production log — TODO comment ยืนยันว่าเป็นของทดสอบที่หลงเข้ามา',
+     sev:'MED'},
+    {p:'TOPUP_OFFICE',cat:'Dep',
+     f:'jsonwebtoken v8 in frontend — JWT secret may be embedded in Nuxt client bundle',
+     f_th:'jsonwebtoken v8 ใน frontend — JWT secret อาจรั่วไปใน Nuxt client bundle',
+     sev:'MED'},
+    {p:'TOPUP_OFFICE',cat:'EOL',
+     f:'Vue 2 reached end-of-life Dec 2023; no more security patches',
+     f_th:'Vue 2 หมดอายุ ธ.ค. 2566 — ไม่มี security patch อีกต่อไป',
+     sev:'HIGH'},
+    {p:'TOPUP_OFFICE',cat:'Supply',
+     f:'63 direct npm dependencies with ^ version ranges; no confirmed package-lock.json pinning',
+     f_th:'63 npm dependencies ใช้ ^ version — ไม่มีการ lock version, เสี่ยง supply chain attack',
+     sev:'LOW'},
+  ],
+  boundaries: [
+    {p:'3rd-payment',port:'8081',proto:'HTTP/HTTPS',
+     ingress:'Internal services + 30+ payment provider webhooks',
+     ingress_th:'Internal services + webhook จาก 30+ payment provider',
+     egress:'KissPay, BigPay, TrustPay, XPay APIs; RabbitMQ; MongoDB; Telegram Bot; OTel',
+     egress_th:'KissPay, BigPay, TrustPay, XPay; RabbitMQ; MongoDB; Telegram Bot; OTel',
+     auth:'Service whitelist (partial); no HMAC on webhooks',
+     auth_th:'Service whitelist บางส่วน; ไม่มี HMAC บน webhook'},
+    {p:'GOTOPOPOFFICE',port:'7777',proto:'HTTP',
+     ingress:'Admin browser (TOPUP_OFFICE); telesale proxy',
+     ingress_th:'Admin browser (TOPUP_OFFICE); telesale proxy',
+     egress:'MongoDB multi-tenant; Redis DB0+DB2; RabbitMQ; LINE API; SMS kub.com; AWS S3; SUPERCOM_API',
+     egress_th:'MongoDB หลาย tenant; Redis DB0+DB2; RabbitMQ; LINE API; SMS kub.com; AWS S3; SUPERCOM_API',
+     auth:'JWT HS256 SHA1(Host+week); permission code gate',
+     auth_th:'JWT HS256 SHA1(Host+สัปดาห์); ตรวจ permission code'},
+    {p:'telesale-service-mootui',port:'HTTP_PORT env',proto:'HTTP',
+     ingress:'GOTOPOPOFFICE proxy; direct callers',
+     ingress_th:'GOTOPOPOFFICE proxy; ผู้เรียกโดยตรง',
+     egress:'MongoDB; Redis; YaleCom VOIP API',
+     egress_th:'MongoDB; Redis; YaleCom VOIP API',
+     auth:'⚠️ None visible on any route',
+     auth_th:'⚠️ ไม่มีเลยสักตัว'},
+    {p:'topupserie_mootui',port:'PORT env',proto:'HTTP',
+     ingress:'Customer frontends (web-theme-nextgen, platform_Tangtem)',
+     ingress_th:'Customer frontends (web-theme-nextgen, platform_Tangtem)',
+     egress:'MongoDB x2; RabbitMQ; Redis; external respap APIs',
+     egress_th:'MongoDB x2; RabbitMQ; Redis; external respap APIs',
+     auth:'JWT Bearer or API key (TYPEAUTH env switch)',
+     auth_th:'JWT Bearer หรือ API key (สลับด้วย TYPEAUTH env)'},
+    {p:'TOPUP_OFFICE',port:'3000 (dev)',proto:'HTTP',
+     ingress:'Admin staff browser',
+     ingress_th:'Browser ของ admin',
+     egress:'GOTOPOPOFFICE; topupserie_mootui; Firebase',
+     egress_th:'GOTOPOPOFFICE; topupserie_mootui; Firebase',
+     auth:'JWT stored client-side as Authorization header',
+     auth_th:'JWT เก็บฝั่ง client ส่งเป็น Authorization header'},
+  ],
+  deps: [
+    {p:'3rd-payment',name:'gin-gonic/gin',ver:'v1.11.0',type:'HTTP Framework',type_th:'HTTP Framework',risk:'LOW'},
+    {p:'3rd-payment',name:'mongo-driver',ver:'v1.17.4',type:'Database',type_th:'ฐานข้อมูล',risk:'LOW'},
+    {p:'3rd-payment',name:'go-redis/redis/v8',ver:'v8.11.5',type:'Cache',type_th:'Cache',risk:'LOW'},
+    {p:'3rd-payment',name:'streadway/amqp',ver:'v1.1.0',type:'Message Queue',type_th:'Message Queue',risk:'LOW'},
+    {p:'3rd-payment',name:'chromedp/chromedp',ver:'v0.15.1',type:'Headless Browser (heavy)',type_th:'Headless Browser (หนัก)',risk:'MED'},
+    {p:'3rd-payment',name:'golang-jwt/jwt/v5',ver:'v5.3.0',type:'Auth (safe)',type_th:'Auth (ปลอดภัย)',risk:'LOW'},
+    {p:'GOTOPOPOFFICE',name:'gin-gonic/gin',ver:'v1.6.3 (2020)',type:'HTTP Framework — outdated',type_th:'HTTP Framework — ล้าหลัง',risk:'MED'},
+    {p:'GOTOPOPOFFICE',name:'dgrijalva/jwt-go',ver:'v3.2.0',type:'Auth — CVE-2020-26160 ⚠️',type_th:'Auth — CVE-2020-26160 ⚠️',risk:'HIGH'},
+    {p:'GOTOPOPOFFICE',name:'uber/jaeger-client-go',ver:'v2.25.0',type:'Tracing — deprecated',type_th:'Tracing — deprecated แล้ว',risk:'MED'},
+    {p:'GOTOPOPOFFICE',name:'mongo-driver',ver:'v1.10.2',type:'Database',type_th:'ฐานข้อมูล',risk:'LOW'},
+    {p:'telesale-service-mootui',name:'YaleCom VOIP (custom)',ver:'internal wrapper',type:'External VOIP Provider',type_th:'VOIP Provider ภายนอก',risk:'MED'},
+    {p:'topupserie_mootui',name:'dgrijalva/jwt-go',ver:'v3.2.0',type:'Auth — CVE-2020-26160 ⚠️',type_th:'Auth — CVE-2020-26160 ⚠️',risk:'HIGH'},
+    {p:'TOPUP_OFFICE',name:'vue',ver:'^2.6.11',type:'UI Framework — EOL Dec 2023',type_th:'UI Framework — หมดอายุ ธ.ค. 2566',risk:'HIGH'},
+    {p:'TOPUP_OFFICE',name:'nuxt',ver:'^2.14.6',type:'Frontend Framework — EOL risk',type_th:'Frontend Framework — ใกล้ EOL',risk:'MED'},
+    {p:'TOPUP_OFFICE',name:'jsonwebtoken',ver:'^8.5.1',type:'Auth (frontend)',type_th:'Auth (ฝั่ง client)',risk:'MED'},
+    {p:'TOPUP_OFFICE',name:'node-sass',ver:'^9.0.0',type:'CSS — native build required',type_th:'CSS — ต้อง build native',risk:'MED'},
+  ],
+  flows: [
+    {name:'Payment Deposit', name_th:'ฝากเงิน',
+     src:'Customer Frontend', src_th:'หน้าเว็บลูกค้า',
+     via:'topupserie_mootui deposit controller', via_th:'topupserie_mootui deposit controller',
+     dst:'3rd-payment → External Provider API', dst_th:'3rd-payment → API provider ภายนอก',
+     data:'amount, bank_code, username, callbackURL',
+     auth:'JWT/API key on ingress; service whitelist on 3rd-payment', auth_th:'JWT/API key ขาเข้า; service whitelist บน 3rd-payment'},
+    {name:'Payment Callback Webhook', name_th:'Webhook callback จาก provider',
+     src:'External Payment Provider', src_th:'Payment provider ภายนอก',
+     via:'POST to 3rd-payment /api/...', via_th:'POST ไปยัง 3rd-payment /api/...',
+     dst:'MongoDB (report_payment) + RabbitMQ', dst_th:'MongoDB (report_payment) + RabbitMQ',
+     data:'transaction ID, status, amount, ref',
+     auth:'Service whitelist only; ⚠️ no HMAC', auth_th:'Service whitelist เท่านั้น; ⚠️ ไม่มี HMAC'},
+    {name:'Admin Auth Flow', name_th:'การ login ของ admin',
+     src:'Admin Browser (TOPUP_OFFICE)', src_th:'Browser admin (TOPUP_OFFICE)',
+     via:'JWT Bearer → GOTOPOPOFFICE AuthRequiredDB', via_th:'JWT Bearer → GOTOPOPOFFICE AuthRequiredDB',
+     dst:'MongoDB t_account_office OR SUPERCOM_API', dst_th:'MongoDB t_account_office หรือ SUPERCOM_API',
+     data:'JWT claims: ID, deptcode, role.permission[]',
+     auth:'SHA1(Host+week) JWT; permission gate', auth_th:'JWT SHA1(Host+สัปดาห์); ตรวจ permission'},
+    {name:'Telesale Outbound Call', name_th:'โทรออกผ่าน telesale',
+     src:'GOTOPOPOFFICE /telesale/* proxy', src_th:'GOTOPOPOFFICE /telesale/* proxy',
+     via:'HTTP → telesale-service-mootui /api/v1/call', via_th:'HTTP → telesale-service-mootui /api/v1/call',
+     dst:'YaleCom VOIP API (robocall/send)', dst_th:'YaleCom VOIP API (robocall/send)',
+     data:'phone, extension, company_id, api_key, callID',
+     auth:'YaleCom API key only; ⚠️ telesale has no auth', auth_th:'YaleCom API key เท่านั้น; ⚠️ telesale ไม่มี auth'},
+    {name:'Member Wallet Statement', name_th:'บันทึกรายการกระเป๋าสมาชิก',
+     src:'topupserie_mootui deposit controller', src_th:'topupserie_mootui deposit controller',
+     via:'repo.CreateStatement()', via_th:'repo.CreateStatement()',
+     dst:'MongoDB WalletStatement + RabbitMQ event', dst_th:'MongoDB WalletStatement + RabbitMQ event',
+     data:'username, amount, before/after balance, bank details',
+     auth:'Internal service call only', auth_th:'Internal service call เท่านั้น'},
+    {name:'Redis Rate Limiting', name_th:'Rate Limit ด้วย Redis',
+     src:'Customer request (CF-Connecting-IP)', src_th:'Request ลูกค้า (CF-Connecting-IP)',
+     via:'topupserie_mootui middleware.RateLimit()', via_th:'topupserie_mootui middleware.RateLimit()',
+     dst:'Redis keys: start/{route}/{ip}, count/{...}, ban/{ip}', dst_th:'Redis: start/{route}/{ip}, count/{...}, ban/{ip}',
+     data:'IP address, route name, request count',
+     auth:'⚠️ Trusts CF-Connecting-IP (spoofable)', auth_th:'⚠️ เชื่อ CF-Connecting-IP (ปลอมได้ถ้า origin IP หลุด)'},
+  ],
+  trust: [
+    {b:'Internet → 3rd-payment', level:'UNTRUSTED',
+     controls:'Service whitelist; OTel; Prometheus',
+     controls_th:'Service whitelist; OTel; Prometheus',
+     gaps:'No HMAC on webhooks; no rate limit; 30+ unverified sources',
+     gaps_th:'ไม่มี HMAC บน webhook; ไม่มี rate limit; 30+ แหล่งที่ไม่ยืนยัน'},
+    {b:'Internet → topupserie_mootui', level:'SEMI-TRUSTED',
+     controls:'JWT or API key; Redis rate limit by CF-IP',
+     controls_th:'JWT หรือ API key; Redis rate limit ด้วย CF-IP',
+     gaps:'Empty SECRET_KEY = open access; ban returns HTTP 200',
+     gaps_th:'SECRET_KEY ว่าง = เข้าได้หมด; ban คืน HTTP 200'},
+    {b:'Admin Browser → GOTOPOPOFFICE', level:'SEMI-TRUSTED',
+     controls:'JWT + permission code; VPN middleware; dept filter',
+     controls_th:'JWT + permission code; VPN middleware; dept filter',
+     gaps:'SHA1 key predictable; DEMO bypass; hardcoded LINE UID',
+     gaps_th:'SHA1 key คาดเดาได้; DEMO bypass; hardcode LINE UID'},
+    {b:'GOTOPOPOFFICE → SUPERCOM_API', level:'TRUSTED (internal)',
+     controls:'HTTP call; VPN gate',
+     controls_th:'HTTP call; VPN gate',
+     gaps:'Failure silent without c.Abort(); no circuit breaker',
+     gaps_th:'ล้มเหลวโดยไม่ abort request; ไม่มี circuit breaker'},
+    {b:'GOTOPOPOFFICE → telesale-service', level:'TRUSTED (internal)',
+     controls:'Internal network assumption only',
+     controls_th:'สมมติว่า internal network ปลอดภัย',
+     gaps:'⚠️ telesale has zero auth — anyone on internal net can call',
+     gaps_th:'⚠️ telesale ไม่มี auth เลย — ใครใน internal network ก็เรียกได้'},
+    {b:'telesale → YaleCom VOIP', level:'TRUSTED (3rd party)',
+     controls:'API key + Company ID',
+     controls_th:'API key + Company ID',
+     gaps:'Credentials stored plaintext in MongoDB',
+     gaps_th:'credentials เก็บ plaintext ใน MongoDB'},
+    {b:'Cloudflare → topupserie_mootui', level:'TRUSTED (CDN)',
+     controls:'Rate limit via CF-Connecting-IP',
+     controls_th:'Rate limit ผ่าน CF-Connecting-IP',
+     gaps:'Spoofable if origin IP exposed',
+     gaps_th:'ปลอมได้ถ้า origin IP หลุด'},
+    {b:'MongoDB database_config', level:'HIGH-VALUE TARGET',
+     controls:'TLS in PRODUCTION; min/max pool 1',
+     controls_th:'TLS ใน production; connection pool 1',
+     gaps:'Compromise = all tenant MongoDB URIs + Redis creds exposed',
+     gaps_th:'ถ้าถูกเจาะ = ได้ MongoDB URI และ Redis credentials ทุก tenant'},
+  ],
+  dead: [
+    {p:'3rd-payment', loc:'main.go:31', sym:'app.StartCronjob()',
+     f:'Commented out; CronjobStatement controller exists but unreachable',
+     f_th:'Commented out; CronjobStatement controller มีอยู่แต่ไม่ถูกเรียก'},
+    {p:'3rd-payment', loc:'db comments', sym:'connectionStringTemplate',
+     f:'Two commented-out MongoDB URI templates with credential patterns remain',
+     f_th:'MongoDB URI template 2 อัน ถูก comment ไว้พร้อม credential patterns'},
+    {p:'GOTOPOPOFFICE', loc:'db/db.go:56', sym:'Resource.Close()',
+     f:'Method body commented out; connection leaks if called',
+     f_th:'body ของ method ถูก comment ออก — เรียกแล้ว connection leak'},
+    {p:'GOTOPOPOFFICE', loc:'middlewares/auth.go', sym:'AuthRequired()',
+     f:'Defined but never called; AuthRequiredDB() used everywhere',
+     f_th:'ประกาศไว้แต่ไม่เคยถูกใช้ — ทุกที่ใช้ AuthRequiredDB() แทน'},
+    {p:'GOTOPOPOFFICE', loc:'helper/k8shelm.go', sym:'k8shelm package',
+     f:'Kubernetes Helm helper with no reference in any route or controller',
+     f_th:'Kubernetes Helm helper ที่ไม่มีใครเรียกจาก route หรือ controller'},
+    {p:'topupserie_mootui', loc:'rateLimit.go:101', sym:'"TestRateLimit"',
+     f:'TODO in Thai confirms dev artifact in production rate-limit flow',
+     f_th:'TODO ภาษาไทยยืนยันว่าเป็นของทดสอบที่หลงเข้า production'},
+    {p:'topupserie_mootui', loc:'route_apex_pro.go', sym:'Conditional routes',
+     f:'Only registered when PROJECT env matches — dead on most deployments',
+     f_th:'ใช้งานได้เฉพาะ PROJECT env ตรงกัน — ส่วนใหญ่ dead'},
+    {p:'telesale-service-mootui', loc:'route.go:43', sym:'Swagger route',
+     f:'// router.GET("/docs/*any") disabled — zero API documentation',
+     f_th:'Swagger route ถูก comment ออก — ไม่มี API documentation เลย'},
+  ],
+  failures: [
+    {p:'3rd-payment', s:'Payment webhook flood', s_th:'Webhook ถล่ม',
+     impact:'HIGH', like:'MED',
+     mit:'Redis lock on deposit; RabbitMQ queuing', mit_th:'Redis lock; RabbitMQ queuing',
+     gap:'No rate limit; single MQ failure drops all events', gap_th:'ไม่มี rate limit; MQ ล้มเลิก event หาย'},
+    {p:'3rd-payment', s:'MongoDB failure at startup', s_th:'MongoDB ล่มตอน start',
+     impact:'CRITICAL', like:'LOW',
+     mit:'Fast fail with colored log', mit_th:'Fast fail พร้อม log สี',
+     gap:'No retry; process exits immediately', gap_th:'ไม่มี retry; process exit ทันที'},
+    {p:'3rd-payment', s:'Telegram notifier failure', s_th:'Telegram notifier ล้มเหลว',
+     impact:'MED', like:'LOW',
+     mit:'Falls back to no-op silently', mit_th:'Fallback เงียบๆ ไม่ทำอะไร',
+     gap:'Payment errors invisible to on-call', gap_th:'payment error ไม่ถึง on-call team'},
+    {p:'GOTOPOPOFFICE', s:'JWT key rotation (Monday midnight)', s_th:'JWT หมุน key ทุกจันทร์เที่ยงคืน',
+     impact:'HIGH', like:'CERTAIN',
+     mit:'New tokens issued post-rotation', mit_th:'ออก token ใหม่หลัง rotate',
+     gap:'ALL admin sessions invalidated with no grace period', gap_th:'admin ทุกคน logout พร้อมกัน ไม่มี grace period'},
+    {p:'GOTOPOPOFFICE', s:'DelGame() on wrong env', s_th:'เรียก DelGame() ผิด environment',
+     impact:'CRITICAL', like:'LOW',
+     mit:'Separate Redis DB index (DB2)', mit_th:'ใช้ Redis DB2 แยก',
+     gap:'FlushDB() nukes all DB2; no env safeguard', gap_th:'FlushDB() ลบ DB2 ทั้งหมด ไม่มี safeguard'},
+    {p:'GOTOPOPOFFICE', s:'SUPERCOM_API timeout in auth', s_th:'SUPERCOM_API timeout ระหว่าง auth',
+     impact:'HIGH', like:'MED',
+     mit:'None', mit_th:'ไม่มี',
+     gap:'Returns silently without c.Abort()', gap_th:'return เงียบๆ โดยไม่ abort — request ดำเนินต่อ'},
+    {p:'telesale-service-mootui', s:'Redis always DB 0 (config bug)', s_th:'Redis ติดอยู่ที่ DB 0 ตลอด',
+     impact:'MED', like:'CERTAIN',
+     mit:'None — always broken', mit_th:'ไม่มี — ผิดตลอดเวลา',
+     gap:'strconv.Atoi("REDIS_DB") literal bug', gap_th:'bug ใน config: แปลง literal string แทน env'},
+    {p:'telesale-service-mootui', s:'YaleCom API unavailable', s_th:'YaleCom API ล่ม',
+     impact:'HIGH', like:'MED',
+     mit:'Error returned to caller', mit_th:'คืน error ไปยัง caller',
+     gap:'No retry, circuit breaker, or fallback', gap_th:'ไม่มี retry, circuit breaker, หรือ fallback'},
+    {p:'topupserie_mootui', s:'RabbitMQ disconnect mid-publish', s_th:'RabbitMQ หลุดระหว่าง publish',
+     impact:'HIGH', like:'MED',
+     mit:'Auto-reconnect in _config/mq.go', mit_th:'Auto-reconnect ใน _config/mq.go',
+     gap:'Events lost during reconnect; no publisher confirm', gap_th:'event หายช่วง reconnect; ไม่มี publisher confirm'},
+    {p:'topupserie_mootui', s:'Empty SECRET_KEY on deploy', s_th:'Deploy โดยไม่ตั้ง SECRET_KEY',
+     impact:'CRITICAL', like:'LOW',
+     mit:'None', mit_th:'ไม่มี',
+     gap:'verifySecret passes ALL requests when env unset', gap_th:'ผ่าน auth ทุก request เมื่อ env ไม่ได้ตั้ง'},
+    {p:'TOPUP_OFFICE', s:'Backend API down', s_th:'Backend API ล่ม',
+     impact:'HIGH', like:'MED',
+     mit:'Per-component Axios error handling', mit_th:'Axios error handling แต่ละ component',
+     gap:'No global error boundary; stale data persists', gap_th:'ไม่มี global error boundary; ข้อมูลเก่าค้างอยู่'},
+  ],
+  debt: [
+    {p:'GOTOPOPOFFICE + topupserie_mootui',
+     item:'dgrijalva/jwt-go CVE-2020-26160',
+     item_th:'dgrijalva/jwt-go มีช่องโหว่ CVE-2020-26160',
+     detail:'Migrate to golang-jwt/jwt/v5 (already used in 3rd-payment)',
+     detail_th:'เปลี่ยนไปใช้ golang-jwt/jwt/v5 (3rd-payment ใช้อยู่แล้ว)',
+     pri:'CRITICAL'},
+    {p:'telesale-service-mootui',
+     item:'Redis DB config bug (always DB0)',
+     item_th:'Redis DB index ผิดตลอด (ติดอยู่ที่ DB0)',
+     detail:'strconv.Atoi("REDIS_DB") → strconv.Atoi(os.Getenv("REDIS_DB")) — one-line fix',
+     detail_th:'แก้ 1 บรรทัด: strconv.Atoi("REDIS_DB") → strconv.Atoi(os.Getenv("REDIS_DB"))',
+     pri:'HIGH'},
+    {p:'topupserie_mootui',
+     item:'Hardcoded "TestRateLimit" in production',
+     item_th:'"TestRateLimit" hardcode ใน production log',
+     detail:'Re-enable JWT header username extraction in rateLimit.go',
+     detail_th:'คืนค่าการอ่าน JWT username ใน rateLimit.go แทน hardcode',
+     pri:'HIGH'},
+    {p:'TOPUP_OFFICE',
+     item:'Vue 2 / Nuxt 2 EOL Dec 2023',
+     item_th:'Vue 2 / Nuxt 2 หมดอายุ ธ.ค. 2566',
+     detail:'Migrate to Vue 3 / Nuxt 3 — web-theme-nextgen is the target pattern',
+     detail_th:'Migrate ไป Vue 3 / Nuxt 3 โดยใช้ web-theme-nextgen เป็นแบบ',
+     pri:'HIGH'},
+    {p:'All Go projects',
+     item:'Zero test coverage',
+     item_th:'ไม่มี test เลย',
+     detail:'GOTOPOPOFFICE confirmed no test files for a financial transaction system',
+     detail_th:'GOTOPOPOFFICE ยืนยันไม่มี test file เลยในระบบ financial transaction',
+     pri:'HIGH'},
+    {p:'GOTOPOPOFFICE',
+     item:'Gin v1.6.3 (2020) — 6 versions behind',
+     item_th:'Gin v1.6.3 (ปี 2020) — ล้าหลัง 6 version',
+     detail:'Update to v1.11.x; missing security fixes and performance improvements',
+     detail_th:'อัพเดตเป็น v1.11.x; มี security fix และ performance improvement',
+     pri:'MED'},
+    {p:'GOTOPOPOFFICE',
+     item:'uber/jaeger-client-go deprecated',
+     item_th:'uber/jaeger-client-go deprecated แล้ว',
+     detail:'Replace with OpenTelemetry SDK — 3rd-payment already uses otelgo',
+     detail_th:'เปลี่ยนเป็น OpenTelemetry SDK — 3rd-payment ใช้ otelgo อยู่แล้ว',
+     pri:'MED'},
+    {p:'GOTOPOPOFFICE',
+     item:'ioutil.ReadFile for TLS cert (deprecated Go 1.16+)',
+     item_th:'ioutil.ReadFile สำหรับ TLS cert (deprecated Go 1.16+)',
+     detail:'Replace with os.ReadFile and handle error — TLS silently nil on failure now',
+     detail_th:'เปลี่ยนเป็น os.ReadFile และจัดการ error — ตอนนี้ TLS เงียบไปถ้าโหลด cert ผิดพลาด',
+     pri:'MED'},
+    {p:'3rd-payment',
+     item:'go 1.26 in go.mod (non-existent)',
+     item_th:'go 1.26 ใน go.mod — ไม่มีอยู่จริง',
+     detail:'Fix to go 1.21 or go 1.22 to unblock CI',
+     detail_th:'แก้เป็น go 1.21 หรือ go 1.22 เพื่อให้ CI ผ่าน',
+     pri:'MED'},
+    {p:'TOPUP_OFFICE',
+     item:'node-sass → sass (dart-sass) migration',
+     item_th:'ย้ายจาก node-sass → sass (dart-sass)',
+     detail:'Drop-in compatible; no native build required',
+     detail_th:'ใช้แทนกันได้เลย ไม่ต้อง build native',
+     pri:'MED'},
+    {p:'3rd-payment',
+     item:'chromedp headless browser dependency',
+     item_th:'chromedp dependency หนักมาก',
+     detail:'Consider lighter pure-Go QR lib or extract to dedicated microservice',
+     detail_th:'พิจารณา QR library Go순수 หรือแยกออกเป็น microservice แยก',
+     pri:'LOW'},
+  ],
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+var AT = 'risk';
+
+function t(key){ return T[lang][key]; }
+
+function toggleDark(){
+  dark=!dark;
+  document.getElementById('body').style.background=dark?'#0f172a':'#f1f5f9';
+  document.getElementById('body').style.color=dark?'#cbd5e1':'#1e293b';
+  document.getElementById('dtbtn').textContent=dark?'Light Mode':'Dark Mode';
+  renderAll();
+}
+
+function toggleLang(){
+  lang = lang==='en' ? 'th' : 'en';
+  document.getElementById('lbtn').textContent = lang==='en' ? '🇹🇭 ภาษาไทย' : '🇬🇧 English';
+  document.documentElement.lang = lang;
+  renderAll();
+}
+
+function renderAll(){ renderTabs(); renderContent(); }
+
+function bd(s){
+  var c={HIGH:'#ef4444',MED:'#f59e0b',LOW:'#22c55e',CRITICAL:'#dc2626',CERTAIN:'#dc2626',UNKNOWN:'#6b7280'};
+  var label = lang==='th'
+    ? {HIGH:'สูง',MED:'ปานกลาง',LOW:'ต่ำ',CRITICAL:'วิกฤต',CERTAIN:'แน่นอน',UNKNOWN:'?'}[s]||s
+    : s;
+  return '<span style="background:'+(c[s]||'#6b7280')+';color:#fff;padding:1px 8px;border-radius:9999px;font-size:0.7rem;font-weight:700">'+label+'</span>';
+}
+
+function tbl(headers,rows){
+  var bg=dark?'#0f172a':'#fff';
+  var hbg=dark?'#1e293b':'#e2e8f0';
+  var brd=dark?'#334155':'#cbd5e1';
+  var alt=dark?'#1e293b':'#f8fafc';
+  return '<div style="overflow-x:auto;border-radius:8px;border:1px solid '+brd+'"><table style="width:100%;border-collapse:collapse;font-size:0.81rem">'+
+    '<thead><tr>'+headers.map(function(h){return '<th style="background:'+hbg+';color:'+(dark?'#94a3b8':'#475569')+';padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:2px solid '+brd+'">'+h+'</th>';}).join('')+'</tr></thead>'+
+    '<tbody>'+rows.map(function(r,i){
+      return '<tr style="background:'+(i%2===1?alt:bg)+'">'+(r.map?r.map(function(c){return '<td style="padding:7px 12px;border-bottom:1px solid '+brd+';vertical-align:top">'+c+'</td>';}).join(''):'<td>'+r+'</td>')+'</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+function code(s){ return '<code style="color:#a5b4fc;font-size:0.75rem">'+s+'</code>'; }
+function h2(txt){ return '<h2 style="font-size:1.1rem;font-weight:700;color:'+(dark?'#fff':'#1e293b')+';margin-bottom:12px">'+txt+'</h2>'; }
+
+// ── Tab bar ────────────────────────────────────────────────────────────────
+var TAB_IDS = ['risk','boundaries','deps','flows','trust','dead','failures','debt'];
+
+function renderTabs(){
+  document.getElementById('tabBar').innerHTML = TAB_IDS.map(function(id, i){
+    var a = id === AT;
+    var label = t('tabs')[i];
+    return '<button onclick="setTab(\''+id+'\')" style="padding:6px 14px;border-radius:6px 6px 0 0;font-size:0.8rem;font-weight:600;border:1px solid '+(a?'#6366f1':'#334155')+';border-bottom:none;background:'+(a?'#6366f1':'#1e293b')+';color:'+(a?'#fff':'#94a3b8')+';cursor:pointer">'+label+'</button>';
+  }).join('');
+}
+
+function setTab(id){ AT=id; renderAll(); }
+
+// ── Content renderer ───────────────────────────────────────────────────────
+function renderContent(){
+  var el = document.getElementById('tabContent');
+  var brd = dark?'#334155':'#cbd5e1';
+
+  if(AT==='risk'){
+    el.innerHTML = h2(t('risk_title')+' — '+D.risk.length+(lang==='th'?' ปัญหา':' findings'))+
+      tbl(t('risk_cols'), D.risk.map(function(r){
+        return [code(r.p), r.cat, '<span style="font-size:0.8rem">'+(lang==='th'?r.f_th:r.f)+'</span>', bd(r.sev)];
+      }));
+    return;
+  }
+  if(AT==='boundaries'){
+    el.innerHTML = h2(t('bound_title'))+
+      tbl(t('bound_cols'), D.boundaries.map(function(r){
+        return [
+          code(r.p),
+          '<code style="color:#4ade80">'+r.port+'</code>',
+          r.proto,
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.ingress_th:r.ingress)+'</span>',
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.egress_th:r.egress)+'</span>',
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.auth_th:r.auth)+'</span>',
+        ];
+      }));
+    return;
+  }
+  if(AT==='deps'){
+    el.innerHTML = h2(t('deps_title')+' — '+D.deps.length+(lang==='th'?' packages':' packages'))+
+      tbl(t('deps_cols'), D.deps.map(function(r){
+        return [
+          code(r.p),
+          '<code style="color:#67e8f9;font-size:0.75rem">'+r.name+'</code>',
+          '<span style="color:#94a3b8;font-size:0.75rem">'+r.ver+'</span>',
+          lang==='th'?r.type_th:r.type,
+          bd(r.risk),
+        ];
+      }));
+    return;
+  }
+  if(AT==='flows'){
+    el.innerHTML = h2(t('flows_title'))+
+      D.flows.map(function(f){
+        return '<div style="background:'+(dark?'#1e293b':'#f8fafc')+';border:1px solid '+brd+';border-radius:8px;padding:14px;margin-bottom:10px">'+
+          '<div style="font-weight:700;color:'+(dark?'#fff':'#1e293b')+';margin-bottom:8px">'+(lang==='th'?f.name_th:f.name)+'</div>'+
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px;font-size:0.78rem">'+
+          '<div><span style="color:#94a3b8">'+t('flow_src')+': </span><span style="color:#86efac">'+(lang==='th'?f.src_th:f.src)+'</span></div>'+
+          '<div><span style="color:#94a3b8">'+t('flow_via')+': </span><span style="color:#fde68a">'+(lang==='th'?f.via_th:f.via)+'</span></div>'+
+          '<div><span style="color:#94a3b8">'+t('flow_dst')+': </span><span style="color:#93c5fd">'+(lang==='th'?f.dst_th:f.dst)+'</span></div>'+
+          '<div><span style="color:#94a3b8">'+t('flow_data')+': </span>'+f.data+'</div>'+
+          '<div><span style="color:#94a3b8">'+t('flow_auth')+': </span>'+(lang==='th'?f.auth_th:f.auth)+'</div>'+
+          '</div></div>';
+      }).join('');
+    return;
+  }
+  if(AT==='trust'){
+    var lvlc = {UNTRUSTED:'#ef4444','SEMI-TRUSTED':'#f59e0b','TRUSTED (internal)':'#22c55e','TRUSTED (3rd party)':'#22c55e','TRUSTED (CDN)':'#22c55e','HIGH-VALUE TARGET':'#dc2626'};
+    var lvlTh = {UNTRUSTED:'ไม่น่าเชื่อถือ','SEMI-TRUSTED':'น่าเชื่อถือบางส่วน','TRUSTED (internal)':'น่าเชื่อถือ (ภายใน)','TRUSTED (3rd party)':'น่าเชื่อถือ (ภายนอก)','TRUSTED (CDN)':'น่าเชื่อถือ (CDN)','HIGH-VALUE TARGET':'เป้าหมายมูลค่าสูง'};
+    el.innerHTML = h2(t('trust_title'))+
+      tbl(t('trust_cols'), D.trust.map(function(r){
+        var lbl = lang==='th' ? (lvlTh[r.level]||r.level) : r.level;
+        return [
+          '<code style="color:#67e8f9;font-size:0.75rem">'+r.b+'</code>',
+          '<span style="background:'+(lvlc[r.level]||'#6b7280')+';color:#fff;padding:1px 8px;border-radius:9999px;font-size:0.7rem;font-weight:700">'+lbl+'</span>',
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.controls_th:r.controls)+'</span>',
+          '<span style="color:#fca5a5;font-size:0.78rem">'+(lang==='th'?r.gaps_th:r.gaps)+'</span>',
+        ];
+      }));
+    return;
+  }
+  if(AT==='dead'){
+    el.innerHTML = h2(t('dead_title'))+
+      tbl(t('dead_cols'), D.dead.map(function(r){
+        return [
+          code(r.p),
+          '<code style="color:#94a3b8;font-size:0.75rem">'+r.loc+'</code>',
+          '<code style="color:#fde68a;font-size:0.75rem">'+r.sym+'</code>',
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.f_th:r.f)+'</span>',
+        ];
+      }));
+    return;
+  }
+  if(AT==='failures'){
+    el.innerHTML = h2(t('fail_title')+' — '+D.failures.length+(lang==='th'?' สถานการณ์':' scenarios'))+
+      tbl(t('fail_cols'), D.failures.map(function(r){
+        return [
+          code(r.p),
+          '<span style="font-size:0.78rem;font-weight:600">'+(lang==='th'?r.s_th:r.s)+'</span>',
+          bd(r.impact),
+          bd(r.like),
+          '<span style="color:#86efac;font-size:0.78rem">'+(lang==='th'?r.mit_th:r.mit)+'</span>',
+          '<span style="color:#fca5a5;font-size:0.78rem">'+(lang==='th'?r.gap_th:r.gap)+'</span>',
+        ];
+      }));
+    return;
+  }
+  if(AT==='debt'){
+    var pc = {CRITICAL:'#dc2626',HIGH:'#f59e0b',MED:'#3b82f6',LOW:'#6b7280'};
+    var priTh = {CRITICAL:'วิกฤต',HIGH:'สูง',MED:'ปานกลาง',LOW:'ต่ำ'};
+    el.innerHTML = h2(t('debt_title')+' — '+D.debt.length+(lang==='th'?' รายการ':' items'))+
+      tbl(t('debt_cols'), D.debt.map(function(r){
+        var priLabel = lang==='th' ? (priTh[r.pri]||r.pri) : r.pri;
+        return [
+          code(r.p),
+          '<span style="color:#fde68a;font-size:0.8rem;font-weight:600">'+(lang==='th'?r.item_th:r.item)+'</span>',
+          '<span style="font-size:0.78rem">'+(lang==='th'?r.detail_th:r.detail)+'</span>',
+          '<span style="background:'+(pc[r.pri]||'#6b7280')+';color:#fff;padding:1px 8px;border-radius:9999px;font-size:0.7rem;font-weight:700">'+priLabel+'</span>',
+        ];
+      }));
+    return;
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>

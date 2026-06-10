@@ -22,5 +22,11 @@
 |---------|----------|
 | [/archaeology](commands/archaeology.md) | ถอด DNA service เดียวลึกๆ — 7 patterns + HTML + MD |
 
+## Outputs
+| ไฟล์ | สร้างจาก | วันที่ |
+|------|---------|-------|
+| [archaeology_5projects.md](outputs/archaeology_5projects.md) | `/archaeology` projects 1,7,14,15,16 | 2026-06-09 |
+| [archaeology_5projects.html](outputs/archaeology_5projects.html) | `/archaeology` projects 1,7,14,15,16 | 2026-06-09 |
+
 ## Plans
 - [2026-06-10](plans/2026-06-10.md)
