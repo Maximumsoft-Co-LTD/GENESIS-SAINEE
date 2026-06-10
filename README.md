@@ -10,6 +10,7 @@
 | `research/` | เนื้อหา research แต่ละเรื่อง (ไม่มีวันที่ — ดูจาก daily แทน) |
 
 ## Daily Logs
+- [2026-06-10](daily/2026-06-10.md)
 - [2026-06-09](daily/2026-06-09.md)
 
 ## Research
