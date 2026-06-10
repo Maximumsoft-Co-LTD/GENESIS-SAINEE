@@ -35,8 +35,6 @@ Claude จะอ่าน code แล้ววิเคราะห์ flow, dep
 | Pattern | ใช้เมื่อ | Output |
 |---------|---------|--------|
 | Archaeology | ต้องการเข้าใจ project เดียวลึกๆ | `.html` + `.md` ต่อ project |
-| Control Plane | ต้องการ overview หลาย repo พร้อมกัน | dashboard รวม |
-| Analyze Flow | ต้องการดู business flow เฉพาะจุด | flow diagram |
 
 ---
 
