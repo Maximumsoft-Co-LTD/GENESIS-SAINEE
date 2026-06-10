@@ -53,6 +53,9 @@ Claude จะอ่าน code แล้ววิเคราะห์ flow, dep
 
 ---
 
+**Daily log:** [2026-06-10](../daily/2026-06-10.md)
+
+
 ## 5-Prompt Framework (Top-Down ทำมือ)
 
 เทคนิคขุด legacy code เป็น 4 เลเยอร์ (Top-Down) ไล่จากโครงสร้างภายนอก → ท่อส่งข้อมูล
