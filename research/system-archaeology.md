@@ -47,6 +47,38 @@ Claude จะอ่าน code แล้ววิเคราะห์ flow, dep
 
 ---
 
+## สิ่งที่ควรขอเพิ่มจาก `/archaeology` (เรียนรู้จาก code-archaeologist pattern)
+
+skill สำเร็จรูปอย่าง code-archaeologist มี 3 อย่างที่ `/archaeology` ปกติไม่มี
+แต่ useful มาก — ขอได้เลยด้วย prompt เสริม:
+
+### 1. Health Score (0–10)
+ตัวเลขเดียวบอกสุขภาพ project ได้เร็ว — เหมาะสำหรับรายงานให้คนที่ไม่อยากอ่านยาว
+
+```
+หลังวิเคราะห์เสร็จ ให้ให้คะแนนสุขภาพ project นี้ 0–10 พร้อมอธิบาย
+ว่าหักคะแนนจากอะไรบ้าง (เช่น test coverage, complexity, dependency เก่า)
+```
+
+### 2. Technical Debt Inventory
+list หนี้เทคนิคที่ค้างอยู่ พร้อม priority — ใช้ตัดสินใจว่าต้องแก้อะไรก่อน migrate
+
+```
+สรุป Technical Debt ที่เจอในรูปตาราง:
+| รายการ | ความเสี่ยง (สูง/กลาง/ต่ำ) | แนะนำให้แก้ก่อนหรือหลัง migrate |
+```
+
+### 3. Delegate Pattern — ส่งต่อ Sub-agent เฉพาะทาง
+หลัง archaeology เสร็จ ถ้าเจอประเด็นเฉพาะด้าน ให้ส่งต่อ prompt ไปขุดต่อ:
+
+| ถ้าเจอ | ส่งต่อให้ |
+|--------|----------|
+| security issue | `/security-review` |
+| performance bottleneck | prompt วิเคราะห์ query/cache เฉพาะจุด |
+| undocumented API | `/spec-miner` หรือ prompt สร้าง OpenAPI spec |
+
+---
+
 ## นำไปใช้
 - [x] วิเคราะห์ 5 projects ใน monorepo → ได้ `archaeology_5projects.html` + `.md`
 - [ ] ลองใช้กับ `indo/` sub-monorepo
