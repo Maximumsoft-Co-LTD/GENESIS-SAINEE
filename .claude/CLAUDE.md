@@ -1,4 +1,4 @@
-# CLAUDE.md — sainee-logs
+# CLAUDE.md — GENESIS-SAINEE
 
 repo นี้คือ personal dev log ของ Sainee
 
