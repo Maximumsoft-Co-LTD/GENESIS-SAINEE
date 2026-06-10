@@ -26,11 +26,30 @@ Read: folder tree, `go.mod` / `package.json` / `pom.xml`, `main.go` / `main.js` 
 Read: router files, controller files, handler files
 
 สร้างตารางสรุป Endpoints ทั้งหมด:
-| HTTP Method | Path | หน้าที่ (business) | Auth/Middleware | Input | Output | สถานะ (ใช้งาน/dead) |
+| HTTP Method | Path | หน้าที่ (business) | Auth/Middleware | Input | Output | สถานะ (ใช้งาน/dead) | พร้อม migrate? |
+
+Legend พร้อม migrate: ✅ copy ได้เลย | ⚠️ ต้องปรับ (ระบุสั้นๆ) | ❌ เขียนใหม่
 
 **และ** สรุป Async paths:
 | ประเภท | Topic/Queue/Key | รับ payload อะไร | ส่งต่อไปไหน |
 (RabbitMQ consumer/producer, Redis pub/sub, cron job)
+
+**Inter-Service Flows (top 3-5 user journeys สำคัญ):**
+Read: service client files, HTTP call files, กลับไปดู Blast Radius จาก Layer 0
+
+เลือก flows ที่ user ทำบ่อยที่สุด (เช่น login, deposit, withdraw, game-launch) แล้วเขียน call chain:
+
+| Flow | Call Chain | หมายเหตุ |
+|------|-----------|----------|
+
+รูปแบบ call chain:
+- `→` = synchronous HTTP call
+- `⟿` = async (RabbitMQ / cron)
+- `[POST /path]` = endpoint ที่ถูกเรียก
+
+ตัวอย่าง:
+`Frontend → [POST /login] → customer-api → wallet-service → Redis(set session) → response`
+`[POST /deposit] → deposit-service ⟿ queue:notify → notify-gateway → Firebase`
 
 ---
 
@@ -61,6 +80,10 @@ Read: model files, schema files, DB query files, Redis/external API calls
 
 **Health Score: X/10**
 (หักคะแนนจาก: test coverage, complexity, dependency เก่า, security gaps)
+
+**Route Reusability Summary:**
+| Path | พร้อม migrate? | เหตุผล / สิ่งที่ต้องปรับ |
+|------|----------------|--------------------------|
 
 **Technical Debt Inventory:**
 | รายการ | ความเสี่ยง (สูง/กลาง/ต่ำ) | แก้ก่อนหรือหลัง migrate |
