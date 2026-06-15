@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repo Relationship Map — genesis-all-in-one</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'base', securityLevel: 'loose',
+    themeVariables: { fontFamily: 'IBM Plex Sans Thai, sans-serif', fontSize: '14px' },
+    flowchart: { curve: 'basis', nodeSpacing: 40, rankSpacing: 60, htmlLabels: false } });
+
+  await mermaid.run({ querySelector: '.mermaid' });
+
+  const svg = document.querySelector('.mermaid svg');
+  const $ = id => document.getElementById(id);
+
+  if (svg) {
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    // เก็บขนาดเป็นค่าคงที่ (ก่อน pan-zoom จะแก้ viewBox) + fallback เป็น getBBox
+    const bb = svg.viewBox.baseVal;
+    let vb = (bb && bb.width) ? { x: bb.x, y: bb.y, w: bb.width, h: bb.height } : null;
+    if (!vb) { const g = svg.getBBox(); vb = { x: g.x, y: g.y, w: g.width, h: g.height }; }
+    // เก็บ SVG สะอาด (ก่อน pan-zoom แทรก transform) ไว้สำหรับ export
+    const cleanSvg = svg.cloneNode(true);
+
+    const buildSvgString = () => {
+      const c = cleanSvg.cloneNode(true);
+      c.setAttribute('xmlns', SVGNS);
+      c.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      c.removeAttribute('style');
+      c.setAttribute('width', vb.w);
+      c.setAttribute('height', vb.h);
+      c.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+      const rect = document.createElementNS(SVGNS, 'rect');
+      rect.setAttribute('x', vb.x); rect.setAttribute('y', vb.y);
+      rect.setAttribute('width', vb.w); rect.setAttribute('height', vb.h);
+      rect.setAttribute('fill', '#fbfcfd');
+      c.insertBefore(rect, c.firstChild);
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(c);
+    };
+    const download = (blob, name) => {
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(u), 1500);
+    };
+    const exportSvg = () =>
+      download(new Blob([buildSvgString()], { type: 'image/svg+xml;charset=utf-8' }), 'repo-map.svg');
+    const exportPng = (scale = 2.5) => {
+      const svgStr = buildSvgString();
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(vb.w * scale); cv.height = Math.round(vb.h * scale);
+          const ctx = cv.getContext('2d');
+          ctx.fillStyle = '#fbfcfd'; ctx.fillRect(0, 0, cv.width, cv.height);
+          ctx.drawImage(img, 0, 0, cv.width, cv.height);
+          cv.toBlob(b => {
+            if (b) download(b, 'repo-map.png');
+            else alert('PNG export ล้มเหลว (canvas) — ใช้ปุ่ม SVG แทนได้');
+          }, 'image/png');
+        } catch (e) { alert('PNG export ล้มเหลว: ' + e.message + ' — ใช้ปุ่ม SVG แทนได้'); }
+      };
+      img.onerror = () => alert('PNG export ล้มเหลว (โหลดภาพไม่ได้) — ใช้ปุ่ม SVG แทนได้');
+      // ใช้ data-URI (base64) เลี่ยงปัญหา blob+canvas taint ในบางเบราว์เซอร์
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+    };
+
+    $('epng') && ($('epng').onclick = () => exportPng());
+    $('esvg') && ($('esvg').onclick = () => exportSvg());
+
+    // ---- pan/zoom (ถ้า library โหลดได้) ----
+    if (window.svgPanZoom) {
+      svg.removeAttribute('height');
+      svg.style.maxWidth = 'none';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      const pz = svgPanZoom(svg, {
+        zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true,
+        minZoom: 0.3, maxZoom: 12, zoomScaleSensitivity: 0.35,
+        dblClickZoomEnabled: true, mouseWheelZoomEnabled: true,
+      });
+      window.addEventListener('resize', () => { pz.resize(); pz.fit(); pz.center(); });
+      $('zin')  && ($('zin').onclick  = () => pz.zoomIn());
+      $('zout') && ($('zout').onclick = () => pz.zoomOut());
+      $('zrst') && ($('zrst').onclick = () => { pz.resetZoom(); pz.fit(); pz.center(); });
+      $('zful') && ($('zful').onclick = () => {
+        const box = document.getElementById('diagramBox');
+        if (!document.fullscreenElement) box.requestFullscreen?.();
+        else document.exitFullscreen?.();
+        setTimeout(() => { pz.resize(); pz.fit(); pz.center(); }, 120);
+      });
+    }
+  }
+</script>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#161b22; --panel2:#1c2330; --border:#2a3441;
+    --text:#e6edf3; --muted:#8b96a5; --accent:#58a6ff; --accent2:#e65100;
+    --green:#3fb950; --yellow:#d29922; --code:#1e2530;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:'IBM Plex Sans Thai',system-ui,sans-serif;line-height:1.65;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+  header.hero{border-bottom:1px solid var(--border);padding-bottom:28px;margin-bottom:36px}
+  h1{font-size:2rem;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+  h1 .emoji{font-size:1.8rem}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .pill{background:var(--panel2);border:1px solid var(--border);border-radius:999px;
+    padding:5px 13px;font-size:.8rem;color:var(--muted)}
+  .pill b{color:var(--text);font-weight:600}
+  h2{font-size:1.35rem;margin:48px 0 16px;padding-top:14px;font-weight:600;
+    border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  h3{font-size:1.05rem;margin:28px 0 12px;color:var(--accent);font-weight:600}
+  p,li{font-size:.94rem}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:'JetBrains Mono',monospace;font-size:.82em;background:var(--code);
+    padding:2px 6px;border-radius:5px;color:#ffa657;border:1px solid var(--border)}
+  .callout{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);
+    border-radius:8px;padding:14px 18px;margin:18px 0;font-size:.9rem;color:#c9d4e0}
+  .callout.warn{border-left-color:var(--yellow)}
+  .callout.good{border-left-color:var(--green)}
+  ul{padding-left:22px}
+  li{margin:5px 0}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem;
+    background:var(--panel);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+  th{background:var(--panel2);text-align:left;padding:11px 13px;font-weight:600;
+    color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:10px 13px;border-bottom:1px solid var(--border);vertical-align:top;color:#c9d4e0}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(88,166,255,.04)}
+  td.c{text-align:center;white-space:nowrap}
+  .legend{display:flex;gap:24px;flex-wrap:wrap;margin:14px 0}
+  .legend span{font-size:.85rem;color:var(--muted)}
+  .diagram{position:relative;background:#fbfcfd;border:1px solid var(--border);
+    border-radius:12px;margin:18px 0;height:78vh;min-height:480px;overflow:hidden}
+  .diagram:fullscreen{height:100vh;border-radius:0;padding:0}
+  .mermaid{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    cursor:grab}
+  .mermaid:active{cursor:grabbing}
+  .mermaid svg{width:100%;height:100%}
+  .zoom-ctrl{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;
+    gap:6px;z-index:5}
+  .zoom-ctrl button{width:38px;height:38px;border-radius:9px;border:1px solid var(--border);
+    background:rgba(22,27,34,.92);color:var(--text);font-size:1.05rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-family:inherit;
+    transition:.12s;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .zoom-ctrl button:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .zoom-ctrl button#epng,.zoom-ctrl button#esvg{font-size:.72rem;font-weight:600;letter-spacing:.02em}
+  .zoom-hint{position:absolute;bottom:12px;left:14px;z-index:5;font-size:.76rem;
+    color:#566;background:rgba(255,255,255,.82);border:1px solid #d8dee5;border-radius:7px;
+    padding:4px 10px;font-family:inherit}
+  .domain-tag{display:inline-block;background:var(--panel2);border:1px solid var(--border);
+    border-radius:6px;padding:1px 8px;font-size:.78rem;color:var(--muted);margin-right:4px}
+  .hub{color:var(--accent2);font-weight:700}
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:.82rem;text-align:center}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:16px 22px;margin:24px 0;font-size:.9rem}
+  .toc strong{display:block;margin-bottom:8px;color:var(--muted);font-size:.8rem;
+    text-transform:uppercase;letter-spacing:.05em}
+  .toc ol{margin:0;padding-left:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1><span class="emoji">🗺️</span> Repo Relationship Map</h1>
+  <p class="sub">genesis-all-in-one — แผนผังความสัมพันธ์ระหว่าง 25 repo จากหลักฐานในไฟล์จริง</p>
+  <div class="meta">
+    <span class="pill"><b>25</b> repos</span>
+    <span class="pill"><b>22</b> Go · <b>3</b> Nuxt</span>
+    <span class="pill">อัปเดต <b>2026-06-11</b></span>
+    <span class="pill">🟢 หลักฐานแข็ง · 🟡 อ่อน/(?)</span>
+  </div>
+</header>
+
+<div class="toc">
+  <strong>สารบัญ</strong>
+  <ol>
+    <li><a href="#overview">ภาพรวมสถาปัตยกรรม</a></li>
+    <li><a href="#inventory">Inventory (25 repos)</a></li>
+    <li><a href="#edges">Edge List</a></li>
+    <li><a href="#diagram">Mermaid Diagram</a></li>
+    <li><a href="#summary">สรุป Hub &amp; Orphan</a></li>
+  </ol>
+</div>
+
+<section id="overview">
+<h2>1. ภาพรวมสถาปัตยกรรม</h2>
+<ul>
+  <li><b>ไม่มี code import ข้าม repo เลย</b> — ทุก Go service เป็น module อิสระ (<code>app</code>, <code>goofficev10</code>, <code>coupon</code>, …) และ frontend เป็น Nuxt app แยก</li>
+  <li>dependency ภายในองค์กรเดียวที่ใช้ร่วมคือ published lib <code>github.com/Maximumsoft-Co-LTD/otelgo</code> (observability) — ไม่ใช่ repo ในโฟลเดอร์นี้</li>
+  <li>ความสัมพันธ์ทั้งหมดเป็น <b>runtime</b>: HTTP API call, RabbitMQ messaging, shared MongoDB</li>
+  <li>เป็น microservices แบบ <b>multi-tenant</b> — queue/exchange/DB ต่อท้ายด้วย <code>_&lt;SERVICE&gt;</code> (เช่น <code>STATEMENT_&lt;SERVICE&gt;</code>)</li>
+  <li>CI/CD: ทุก repo มี workflow ของตัวเอง → Kaniko → JFrog (<code>thezeustech.jfrog.io</code> / <code>thezeusthech/*</code>) → K8s GitOps; <b>ไม่มี cross-repo pipeline trigger</b></li>
+</ul>
+<div class="legend">
+  <span>🟢 <b>แข็ง</b> — key/path ชื่อตรง หรือพบคู่ Publish↔Consume/QueueBind</span>
+  <span>🟡 <b>อ่อน/(?)</b> — domain/host ภายนอก, ค่าที่ถูก comment, หรือ config inject ตอน runtime</span>
+</div>
+</section>
+
+<section id="inventory">
+<h2>2. Inventory (25 repos)</h2>
+<table>
+  <thead><tr><th>Repo</th><th>ภาษา (module)</th><th>ประเภท</th><th>Build</th></tr></thead>
+  <tbody>
+    <tr><td><code>office-api-v10</code></td><td>Go (<code>goofficev10</code>)</td><td>backend service <span class="hub">⭐ hub</span></td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>go_report</code></td><td>Go (<code>goreport</code>)</td><td>backend service (statement <b>sink</b>)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>coupon-service</code></td><td>Go (<code>coupon</code>)</td><td>backend service (fan-in)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>hash-central</code></td><td>Go (<code>app</code>)</td><td>backend service (hash slip/statement)</td><td>Dockerfile, workflow.yaml</td></tr>
+    <tr><td><code>3rd-payment</code></td><td>Go (<code>app</code>)</td><td>backend service (payment — sync API)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>que_payment</code></td><td>Go (<code>app</code>)</td><td>backend worker (payment — async)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>3rd-gateway</code></td><td>Go (<code>app</code>)</td><td>backend service (gateway config)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>go_deposit</code></td><td>Go (<code>godeposit</code>)</td><td>backend worker (deposit)</td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>go_sms</code></td><td>Go (<code>sms</code>)</td><td>backend service (SMS pub/sub)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>topupserie</code></td><td>Go (<code>topupserie</code>)</td><td>backend service (customer/topup)</td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>affiliate_standalone</code></td><td>Go (<code>affiliate</code>)</td><td>backend service</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>go-agent-rocketwin</code></td><td>Go (<code>agentnewtopup</code>)</td><td>backend service (game agent)</td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>kinglot-seamless</code></td><td>Go (<code>kinglot</code>)</td><td>backend service (seamless wallet)</td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>running-bank</code></td><td>Go (<code>app</code>)</td><td>backend service (bank statement scraper)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>withdraw-auto</code></td><td>Go (<code>app</code>)</td><td>backend service (bank automation)</td><td>Dockerfile, cicd.yml</td></tr>
+    <tr><td><code>queue-withdraw-go</code></td><td>Go (<code>queuework</code>)</td><td>backend worker (withdraw queue)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>queue-dynamic-go</code></td><td>Go (<code>queuework</code>)</td><td>backend worker (dynamic queue forwarder)</td><td>Dockerfile, pipeline.yaml</td></tr>
+    <tr><td><code>sub_statement</code></td><td>Go (<code>statementPub</code>)</td><td>backend service (statement publisher)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>cronjob-smsauto</code></td><td>Go (<code>smsauto</code>)</td><td>tool / cronjob</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>SCHEDULE_SERVICE_BANK</code></td><td>Go (<code>servicebank</code>)</td><td>tool / cronjob (bank trigger)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>go-linebot-system</code></td><td>Go (<code>linebot</code>)</td><td>backend service (LINE bot)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>hydra-affilaite</code></td><td>Go (<code>hydra</code>)</td><td>backend service (aff-system)</td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>hydra-hyperx-web</code></td><td>Nuxt/JS (<code>hydra-system</code>)</td><td><b>frontend</b></td><td>Dockerfile, build.yaml</td></tr>
+    <tr><td><code>office-v10x</code></td><td>Nuxt/JS (<code>office-v10x</code>)</td><td><b>frontend</b> (admin)</td><td>Dockerfile, pipeline.yml</td></tr>
+    <tr><td><code>theme-violet-game</code></td><td>Nuxt/JS (<code>ngernn</code>)</td><td><b>frontend</b> (customer)</td><td>Dockerfile, pipeline.yml</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="edges">
+<h2>3. Edge List</h2>
+
+<h3>3.1 API calls (caller → callee)</h3>
+<table>
+  <thead><tr><th>from</th><th>to</th><th>conf</th><th>หลักฐาน (ไฟล์/key)</th></tr></thead>
+  <tbody>
+    <tr><td><code>office-api-v10</code></td><td><code>hash-central</code></td><td class="c">🟢</td><td><code>HASH_CENTRAL_API</code> → serve <code>POST /hashlayout</code></td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>coupon-service</code></td><td class="c">🟢</td><td><code>COUPON_SERVICE</code> (controller)</td></tr>
+    <tr><td><code>affiliate_standalone</code></td><td><code>coupon-service</code></td><td class="c">🟢</td><td><code>COUPON_SERVICE</code> (controller)</td></tr>
+    <tr><td><code>go_report</code></td><td><code>coupon-service</code></td><td class="c">🟢</td><td><code>COUPON_SERVICE</code> (report)</td></tr>
+    <tr><td><code>topupserie</code></td><td><code>coupon-service</code></td><td class="c">🟢</td><td><code>COUPON_SERVICE</code> (controller)</td></tr>
+    <tr><td><code>topupserie</code></td><td><code>office-api-v10</code></td><td class="c">🟢</td><td><code>URL_OFFICE_API</code> (controller, service)</td></tr>
+    <tr><td><code>go-agent-rocketwin</code></td><td><code>office-api-v10</code></td><td class="c">🟢</td><td><code>APIOFFICE</code> (controller/kinglot)</td></tr>
+    <tr><td><code>kinglot-seamless</code></td><td><code>office-api-v10</code></td><td class="c">🟢</td><td><code>APIOFFICE</code> (callback)</td></tr>
+    <tr><td><code>3rd-payment</code></td><td><code>go_report</code></td><td class="c">🟢</td><td><code>API_REPORT</code> (controller)</td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>3rd-payment</code></td><td class="c">🟢</td><td><code>PAYMENT_API/api/v2/…</code> + <code>/callback-payin/…PEER2PAY</code> ↔ route <code>/peer2pay/v3</code></td></tr>
+    <tr><td><code>go-agent-rocketwin</code></td><td><code>kinglot-seamless</code></td><td class="c">🟢</td><td><code>SEAMLESS_API</code> + <code>APICALLBACKLOTTO</code> + lotto RPC queue</td></tr>
+    <tr><td><code>withdraw-auto</code></td><td><code>3rd-gateway</code></td><td class="c">🟢</td><td><code>controller/thirdgateway</code> + <code>URL_GATEWAY</code>; serve <code>GetListGateway</code></td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>3rd-gateway</code></td><td class="c">🟡</td><td><code>GATEWAY_API</code> — ไม่ยืนยัน path</td></tr>
+    <tr><td><code>running-bank</code></td><td><code>3rd-gateway</code></td><td class="c">🟡</td><td><code>URL_GATEWAY</code> (controller/runbankAll)</td></tr>
+    <tr><td><code>SCHEDULE_SERVICE_BANK</code></td><td><code>3rd-payment</code></td><td class="c">🟡</td><td><code>PAYMENT_API</code> (ctl-update-status-withdraw)</td></tr>
+  </tbody>
+</table>
+
+<p><b>External (อยู่นอกชุด repo นี้):</b></p>
+<table>
+  <thead><tr><th>from</th><th>to (external)</th><th>key</th></tr></thead>
+  <tbody>
+    <tr><td><code>office-api-v10</code></td><td>supercompany (<code>sc-prd.asiawallet.net</code>)</td><td><code>SUPERCOM_API</code></td></tr>
+    <tr><td><code>office-api-v10</code></td><td>sms-kub (<code>uat.sms-kub.com</code>) — <b>ไม่ใช่ go_sms</b></td><td><code>SMS_API</code></td></tr>
+    <tr><td><code>office-api-v10</code></td><td>oauth game-auth (<code>oauth.game-auth.com</code>)</td><td><code>LOGIN_GATEWAY_URL</code></td></tr>
+    <tr><td><code>hash-central</code>, <code>withdraw-auto</code></td><td>SCB bank API</td><td><code>SCB_SERVICE</code></td></tr>
+    <tr><td><code>3rd-payment</code>, <code>que_payment</code></td><td>encryption svc (external/unknown — <b>ไม่ใช่ hash-central</b>)</td><td><code>ENCRYPTION_ENDPOINT</code></td></tr>
+  </tbody>
+</table>
+<div class="callout warn">🔎 <code>ENCRYPTION_ENDPOINT</code>: เดิมสงสัยว่าเป็น hash-central แต่ hash-central serve เฉพาะ <code>/hashlayout</code>, <code>/bot</code> (hash ของ slip/statement) ไม่ใช่ card encryption ของ cloudpay/visapay → จัดเป็น external</div>
+
+<h3>3.2 Async messaging (producer → [exchange/queue] → consumer)</h3>
+<table>
+  <thead><tr><th>from</th><th>to</th><th>conf</th><th>exchange/queue + หลักฐาน</th></tr></thead>
+  <tbody>
+    <tr><td><code>go_deposit</code></td><td><code>go_report</code></td><td class="c">🟢</td><td>fanout <code>STATEMENT</code> (publish.go:33-35) ↔ <code>QueueBind</code> (subscribe.go:87)</td></tr>
+    <tr><td><code>go_sms</code></td><td><code>go_report</code></td><td class="c">🟢</td><td>fanout <code>STATEMENT</code> (que-pub.go:62) ↔ bind</td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>go_report</code></td><td class="c">🟢</td><td><code>STATEMENT</code> (report/publish.go) + <code>OUTSTANDING_&lt;SERVICE&gt;</code> (helper/queue.go:359)</td></tr>
+    <tr><td><code>running-bank</code></td><td><code>go_report</code></td><td class="c">🟢</td><td><code>STATEMENT</code> (report/publish.go)</td></tr>
+    <tr><td><code>sub_statement</code></td><td><code>go_report</code></td><td class="c">🟢</td><td><code>STATEMENT</code> (pub/amqp.go, covid/publish.go)</td></tr>
+    <tr><td><code>go_deposit</code></td><td><code>go_report</code></td><td class="c">🟢</td><td><code>OUTSTANDING_&lt;SERVICE&gt;</code> (publish.go:98) ↔ <code>SubscribeOutstanding</code> (subscribe.go:184)</td></tr>
+    <tr><td><code>affiliate_standalone</code></td><td><code>queue-withdraw-go</code></td><td class="c">🟢</td><td><code>WALLETWITHDRAW_&lt;SERVICE&gt;</code> (mainService.go:253) ↔ <code>QUEUE_NAME=WALLETWITHDRAW</code></td></tr>
+    <tr><td><code>topupserie</code></td><td><code>queue-withdraw-go</code></td><td class="c">🟢</td><td><code>WALLETWITHDRAW</code> (mainService.go:476)</td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>go_deposit</code></td><td class="c">🟢</td><td><code>PublishDepositStatement</code>/<code>PublishRestartDeposit</code> ↔ <code>QUEUE_NAME=DEPOSIT</code></td></tr>
+    <tr><td><code>office-api-v10</code></td><td><code>withdraw-auto</code></td><td class="c">🟢</td><td><code>WITHDRAW_&lt;bank&gt;</code> (withdraw.go:2873) ↔ <code>*/netbank.rabbit.go</code></td></tr>
+    <tr><td><code>queue-withdraw-go</code></td><td><code>queue-dynamic-go</code></td><td class="c">🟢</td><td><code>DYNAMICQUEUE_&lt;SERVICE&gt;</code> (wallet.go:92) ↔ <code>Consume</code> (pub/amqp.go:57)</td></tr>
+    <tr><td><code>go-agent-rocketwin</code></td><td><code>kinglot-seamless</code></td><td class="c">🟢</td><td>lotto RPC queue: ทั้งคู่ <code>rabbitmqlotto/worker</code> + <code>PublishQueue</code></td></tr>
+    <tr><td><code>cronjob-smsauto</code></td><td><code>go_sms</code></td><td class="c">🟡</td><td>exchange <code>SMS</code>/<code>SMS_NEWTOPUP</code> — producer ไม่ยืนยัน 100%</td></tr>
+    <tr><td><code>go-linebot-system</code></td><td><code>go_sms</code></td><td class="c">🟡</td><td><code>SubscribeLineBotDom</code> (que-sub.go:219) — ไม่พบ publish ฝั่ง linebot</td></tr>
+  </tbody>
+</table>
+
+<h3>3.3 Shared data store (soft — domain level)</h3>
+<div class="callout warn">⚠️ เกือบทุก repo ชี้ไป cluster dev เดียวกัน (<code>test02.9oh7e.mongodb.net</code>) ซึ่งเป็นค่า <code>.env</code> dev — <b>ไม่ลากเส้นตาม cluster</b> ลากเฉพาะที่ชื่อ DB สื่อ domain เดียวกัน</div>
+<table>
+  <thead><tr><th>repos</th><th>conf</th><th>หลักฐาน</th></tr></thead>
+  <tbody>
+    <tr><td><code>office-api-v10</code> ↔ <code>cronjob-smsauto</code> ↔ <code>go-linebot-system</code></td><td class="c">🟡</td><td>DB <code>*_office</code> / <code>demo_office</code> (office data domain)</td></tr>
+    <tr><td><code>affiliate_standalone</code> ↔ <code>queue-withdraw-go</code></td><td class="c">🟡</td><td>DB <code>demo-dev_db</code></td></tr>
+    <tr><td><code>3rd-payment</code> ↔ <code>que_payment</code></td><td class="c">🟡</td><td>provider packages เหมือนกันทุกตัว (anypay, askmepay, cloudpay, bitpayz…) + <code>ENCRYPTION_ENDPOINT</code> ร่วม → คู่ sync/async</td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 Frontend → backend (runtime-injected, อ่อน)</h3>
+<div class="callout">API base ของ frontend ถูก inject ตอน deploy ผ่าน k8s (ไม่ฮาร์ดโค้ดใน repo) — เส้นด้านล่างมาจาก baseURL ที่ถูก comment ไว้ในโค้ด/plugin</div>
+<table>
+  <thead><tr><th>from</th><th>to</th><th>conf</th><th>หลักฐาน</th></tr></thead>
+  <tbody>
+    <tr><td><code>hydra-hyperx-web</code></td><td><code>hydra-affilaite</code></td><td class="c">🟡</td><td><code>$axios.setBaseURL('https://aff-system.warmlight.online')</code>, <code>hydra-affiliate.com/api</code> (aff-system = image ของ hydra-affilaite)</td></tr>
+    <tr><td><code>office-v10x</code></td><td><code>office-api-v10</code></td><td class="c">🟡</td><td>baseURL dev <code>localhost:5053</code>/<code>4173</code> (admin frontend ของ office)</td></tr>
+    <tr><td><code>theme-violet-game</code></td><td>customer backend</td><td class="c">🟡</td><td>API base inject runtime — ปลายทางเฉพาะยังไม่ยืนยัน</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="diagram">
+<h2>4. Mermaid Diagram</h2>
+<div class="legend">
+  <span>━━ เส้นทึบ = API/code (แข็ง)</span>
+  <span>┈┈ เส้นประ = event (ชื่อ exchange/queue)</span>
+  <span>│DB│ = shared-db</span>
+</div>
+<div class="diagram" id="diagramBox">
+<div class="zoom-ctrl">
+  <button id="zin"  title="ซูมเข้า">+</button>
+  <button id="zout" title="ซูมออก">−</button>
+  <button id="zrst" title="รีเซ็ต / พอดีจอ">⤢</button>
+  <button id="zful" title="เต็มจอ">⛶</button>
+  <button id="epng" title="ดาวน์โหลด PNG">PNG</button>
+  <button id="esvg" title="ดาวน์โหลด SVG">SVG</button>
+</div>
+<span class="zoom-hint">ลากเพื่อเลื่อน · scroll เพื่อซูม · ดับเบิลคลิกซูมเข้า</span>
+<pre class="mermaid">
+graph LR
+  classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3,color:#666;
+  classDef fe  fill:#e3f2fd,stroke:#1976d2;
+  classDef hub fill:#fff3e0,stroke:#e65100,stroke-width:3px;
+
+  subgraph FE["🖥️ Frontend"]
+    hydra_web[hydra-hyperx-web]:::fe
+    officev10x[office-v10x]:::fe
+    violet[theme-violet-game]:::fe
+  end
+
+  subgraph CORE["🏢 Office / Core"]
+    office[office-api-v10]:::hub
+    cron[cronjob-smsauto]
+    linebot[go-linebot-system]
+  end
+
+  subgraph GAME["🎮 Game Agents"]
+    agent[go-agent-rocketwin]
+    kinglot[kinglot-seamless]
+  end
+
+  subgraph CUST["💰 Customer / Deposit / Affiliate"]
+    topup[topupserie]
+    deposit[go_deposit]
+    aff[affiliate_standalone]
+    hydraaff[hydra-affilaite]
+  end
+
+  subgraph PAY["💳 Payment"]
+    pay3[3rd-payment]
+    quepay[que_payment]
+    gw3[3rd-gateway]
+  end
+
+  subgraph BANK["🏦 Bank / Withdraw"]
+    runbank[running-bank]
+    wauto[withdraw-auto]
+    qwithdraw[queue-withdraw-go]
+    qdyn[queue-dynamic-go]
+    schedbank[SCHEDULE_SERVICE_BANK]
+  end
+
+  subgraph RPT["📊 Statement / Report / Notify"]
+    report[go_report]
+    substmt[sub_statement]
+    sms[go_sms]
+    hash[hash-central]
+  end
+
+  coupon[coupon-service]
+
+  supercom[supercompany]:::ext
+  smskub[sms-kub]:::ext
+  gameauth[oauth game-auth]:::ext
+  scb[SCB bank]:::ext
+
+  office --> hash
+  office --> coupon
+  aff --> coupon
+  report --> coupon
+  topup --> coupon
+  topup --> office
+  agent --> office
+  kinglot --> office
+  pay3 --> report
+  office --> pay3
+  agent <--> kinglot
+  wauto --> gw3
+  office -.GATEWAY_API.-> gw3
+  runbank -.URL_GATEWAY.-> gw3
+  schedbank -.PAYMENT_API.-> pay3
+  office --> supercom
+  office --> smskub
+  office --> gameauth
+  hash --> scb
+  wauto --> scb
+
+  deposit -. STATEMENT/OUTSTANDING .-> report
+  sms -. STATEMENT .-> report
+  office -. STATEMENT/OUTSTANDING .-> report
+  runbank -. STATEMENT .-> report
+  substmt -. STATEMENT .-> report
+  aff -. WALLETWITHDRAW .-> qwithdraw
+  topup -. WALLETWITHDRAW .-> qwithdraw
+  office -. DEPOSIT .-> deposit
+  office -. WITHDRAW_bank .-> wauto
+  qwithdraw -. DYNAMICQUEUE .-> qdyn
+  cron -. SMS .-> sms
+  linebot -. linebotDom? .-> sms
+
+  office -->|office DB| cron
+  office -->|office DB| linebot
+  aff -->|demo-dev_db| qwithdraw
+  pay3 -->|payment DB + providers| quepay
+
+  hydra_web -.aff-system.-> hydraaff
+  officev10x -.admin.-> office
+</pre>
+</div>
+</section>
+
+<section id="summary">
+<h2>5. สรุป Hub &amp; Orphan</h2>
+
+<h3>🌟 Hubs (degree สูงสุด)</h3>
+<ul>
+  <li><b class="hub">office-api-v10</b> — hub กลางชัดเจน (degree ~16)
+    <ul>
+      <li><b>out:</b> hash-central, coupon, 3rd-payment, 3rd-gateway, supercompany/sms-kub/game-auth (ext) + ป้อน queue: go_deposit (<code>DEPOSIT</code>), withdraw-auto (<code>WITHDRAW</code>), go_report (<code>STATEMENT</code>/<code>OUTSTANDING</code>)</li>
+      <li><b>in:</b> topupserie, go-agent-rocketwin, kinglot-seamless (<code>APIOFFICE</code>/<code>URL_OFFICE_API</code>), office-v10x (frontend)</li>
+    </ul>
+  </li>
+  <li><b>go_report</b> — statement <b>sink</b> (in-degree สูงสุด): รับ <code>STATEMENT</code>/<code>OUTSTANDING</code> จาก 5 service + เรียก coupon + ถูกเรียกโดย 3rd-payment</li>
+  <li><b>coupon-service</b> — fan-in hub: ถูกเรียกโดย office, affiliate, go_report, topupserie</li>
+</ul>
+
+<h3>🔗 คู่ที่ coupling แน่น</h3>
+<ul>
+  <li><b>3rd-payment ↔ que_payment</b> — payment sync/async คู่กัน (provider packages เหมือนกัน + DB ร่วม)</li>
+  <li><b>go-agent-rocketwin ↔ kinglot-seamless</b> — game agent + seamless wallet (HTTP สองทาง + lotto RPC queue)</li>
+  <li><b>office → go_report</b> — ผ่านทั้ง queue หลายเส้นและ statement pipeline</li>
+</ul>
+
+<h3>🔸 Connectivity ต่ำสุด (ไม่มี orphan แท้แล้ว)</h3>
+<ul>
+  <li><b>go-linebot-system</b> — เชื่อมแบบอ่อน: go_sms <code>SubscribeLineBotDom</code> + อยู่ใน office DB domain</li>
+  <li><b>SCHEDULE_SERVICE_BANK</b> — มีเฉพาะเส้น 🟡 → 3rd-payment (<code>PAYMENT_API</code>)</li>
+  <li><b>theme-violet-game</b> — frontend ที่ปลายทาง backend ยังไม่ยืนยันจากไฟล์</li>
+</ul>
+<div class="callout good">🎉 <code>hydra-affilaite</code> เดิมเป็น orphan แต่ resolve แล้วเป็น backend ของ <code>hydra-hyperx-web</code> (aff-system)</div>
+
+<h3>⚠️ ข้อจำกัดของหลักฐาน</h3>
+<ul>
+  <li>Frontend ทั้ง 3 ตัว inject API base ตอน runtime (k8s) — เส้นไป backend จึงเป็น 🟡 จาก baseURL ที่ถูก comment ไว้ ไม่ใช่ orphan</li>
+  <li>shared-DB เป็น domain-level inference เท่านั้น (cluster dev ใช้ร่วมกันเกือบหมด ไม่ลากตาม cluster)</li>
+  <li>ค่าใน <code>.env</code> เป็น dev/uat — host จริงตอน production อยู่ใน k8s manifest (ไม่อยู่ใน repo เหล่านี้)</li>
+</ul>
+</section>
+
+<footer>
+  สร้างจากหลักฐานในไฟล์จริง · genesis-all-in-one · 2026-06-11 ·
+  ดูฉบับ markdown ที่ <code>docs/repo-map.md</code>
+</footer>
+
+</div>
+</body>
+</html>

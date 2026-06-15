@@ -29,5 +29,20 @@
 | [archaeology_5projects.md](outputs/archaeology_5projects.md) | `/archaeology` projects 1,7,14,15,16 | 2026-06-09 |
 | [archaeology_5projects.html](outputs/archaeology_5projects.html) | `/archaeology` projects 1,7,14,15,16 | 2026-06-09 |
 
+## Skills
+| Skill | ใช้ทำอะไร |
+|-------|----------|
+| [architecture-advisor](skills/architecture-advisor/SKILL.md) | วิเคราะห์ architecture + เสนอทางเลือก |
+| [repo-atlas](skills/repo-atlas/SKILL.md) | map ความสัมพันธ์ระหว่าง repos |
+| [repo-mapper](skills/repo-mapper/SKILL.md) | สร้าง visual map ของ repo structure |
+| [system-archaeology](skills/system-archaeology/SKILL.md) | ถอด DNA ระบบเก่า multi-agent |
+
+## Docs
+| ไฟล์ | เนื้อหา |
+|------|--------|
+| [archaeology-payment-trio.md](docs/archaeology-payment-trio.md) | Archaeology report: 3rd-payment, que_payment, GOTOPOPOFFICE |
+| [architecture-advisor/](docs/architecture-advisor/) | Current state + roadmap ของ 20+ services (01-05 + cards) |
+| [repo-atlas/](docs/repo-atlas/) | Repo map ของ monorepo ทั้งหมด |
+
 ## Plans
 - [2026-06-10](plans/2026-06-10.md)

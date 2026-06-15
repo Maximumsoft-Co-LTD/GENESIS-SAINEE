@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Archaeology (Detailed) — 3rd-payment · que_payment · 3rd-gateway</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1d212d; --border:#2a2f3e;
+    --text:#d7dae3; --muted:#8b91a3; --head:#f2f4f8;
+    --accent:#5eb3f6; --green:#4ade80; --red:#f87171; --yellow:#fbbf24; --purple:#c084fc;
+    --code-bg:#11141c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Segoe UI","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+    font-size:15px;line-height:1.7}
+  .layout{display:flex;max-width:1500px;margin:0 auto}
+  nav{position:sticky;top:0;align-self:flex-start;width:280px;flex-shrink:0;
+    height:100vh;overflow-y:auto;padding:24px 16px;border-right:1px solid var(--border)}
+  nav h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 8px}
+  nav a{display:block;color:var(--text);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px;margin-bottom:1px}
+  nav a:hover{background:var(--panel2);color:var(--accent)}
+  nav a.sub{padding-left:24px;color:var(--muted);font-size:12px}
+  main{flex:1;min-width:0;padding:32px 44px 96px}
+  h1{color:var(--head);font-size:25px;border-bottom:2px solid var(--accent);padding-bottom:12px}
+  h2{color:var(--head);font-size:20px;margin-top:48px;padding:10px 16px;background:var(--panel);
+     border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+  h3{color:var(--accent);font-size:16.5px;margin-top:30px}
+  h4{color:var(--head);font-size:15px;margin-top:22px}
+  p,li{color:var(--text)}
+  .meta{color:var(--muted);font-size:13px}
+  code{background:var(--code-bg);border:1px solid var(--border);border-radius:4px;
+    padding:1px 6px;font-family:Consolas,"Cascadia Code",monospace;font-size:12.5px;color:#9ecbff}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+    padding:14px 18px;overflow-x:auto;font-size:12.5px;line-height:1.6}
+  pre code{background:none;border:none;padding:0;color:#c9d4e3}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12.8px}
+  th{background:var(--panel2);color:var(--head);text-align:left;padding:8px 10px;border:1px solid var(--border);position:sticky;top:0}
+  td{padding:6px 10px;border:1px solid var(--border);vertical-align:top}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+  .b-green{background:rgba(74,222,128,.14);color:var(--green);border:1px solid rgba(74,222,128,.35)}
+  .b-red{background:rgba(248,113,113,.14);color:var(--red);border:1px solid rgba(248,113,113,.35)}
+  .b-yellow{background:rgba(251,191,36,.14);color:var(--yellow);border:1px solid rgba(251,191,36,.35)}
+  .b-purple{background:rgba(192,132,252,.14);color:var(--purple);border:1px solid rgba(192,132,252,.35)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:14px 0}
+  .card.warn{border-left:4px solid var(--red)}
+  .card.ok{border-left:4px solid var(--green)}
+  .card.info{border-left:4px solid var(--accent)}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:14px 0}
+  .score{font-size:28px;font-weight:700}
+  .s-red{color:var(--red)} .s-yellow{color:var(--yellow)} .s-green{color:var(--green)}
+  .fileref{font-family:Consolas,monospace;font-size:12px;color:var(--purple)}
+  .flow{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+    padding:16px 20px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.85;white-space:pre;overflow-x:auto;color:#c9d4e3}
+  details{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px 16px;margin:10px 0}
+  summary{cursor:pointer;color:var(--head);font-weight:600;padding:6px 0;font-size:14px}
+  summary:hover{color:var(--accent)}
+  .tablewrap{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:8px;margin:10px 0}
+  .tablewrap table{margin:0}
+  .toplink{position:fixed;bottom:24px;right:24px;background:var(--panel2);border:1px solid var(--border);
+    color:var(--accent);padding:8px 14px;border-radius:999px;text-decoration:none;font-size:13px;z-index:9}
+  @media(max-width:980px){nav{display:none}main{padding:18px}}
+  @media print{
+    body{background:#fff;color:#111}
+    nav,.toplink{display:none}
+    h1,h2,h3,h4{color:#111} h2{background:#f3f4f6;border-left-color:#2563eb}
+    code,pre,.flow{background:#f6f8fa;color:#111;border-color:#ddd}
+    th{background:#eee;color:#111;position:static} td,th{border-color:#ccc}
+    .card{border-color:#ccc;background:#fafafa}
+    details{border-color:#ccc} details[open] summary{color:#111}
+    .tablewrap{max-height:none;overflow:visible;border:none}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <h2>สารบัญ</h2>
+  <a href="#scope">🧭 Scope</a>
+  <a href="#layer0">📂 L0: Runtime / Ops</a>
+  <a href="#layer1">📂 L1: โครงสร้าง & Entry</a>
+  <a href="#layer2">🔄 L2: API & Data Flow</a>
+  <a class="sub" href="#l2-routes-pay">Route ครบ 132 เส้น (3rd-payment)</a>
+  <a class="sub" href="#l2-routes-gw">Routes — 3rd-gateway</a>
+  <a class="sub" href="#l2-async">Async paths</a>
+  <a class="sub" href="#l2-flows">Inter-Service Flows</a>
+  <h2>Provider Detail</h2>
+  <a href="#providers">🔌 Provider Matrix</a>
+  <a class="sub" href="#pv-verify">Callback verification ~45 เจ้า</a>
+  <a class="sub" href="#pv-support">รองรับฝาก vs ถอน</a>
+  <a class="sub" href="#pv-deep">CLOUDPAY vs ANYPAYTH deep-dive</a>
+  <h2>Logic</h2>
+  <a href="#layer3">🧠 L3: Business Logic top-5</a>
+  <a href="#quedetail">⚙️ que_payment internals</a>
+  <a class="sub" href="#q-handlers">Message handlers 8 type</a>
+  <a class="sub" href="#q-cron">Cronjobs 5 ตัว</a>
+  <a class="sub" href="#q-state">Status State Machine</a>
+  <a class="sub" href="#q-obs">Classifier + Telegram</a>
+  <a class="sub" href="#q-payload">Callback payloads → office</a>
+  <h2>Data</h2>
+  <a href="#layer4">🗄️ L4: Data & Integration</a>
+  <a class="sub" href="#dd-pay">Data Dictionary (payment)</a>
+  <a class="sub" href="#dd-redis">Redis keys</a>
+  <a class="sub" href="#dd-gw">Entities 3rd-gateway</a>
+  <a href="#tmn">📱 TrueWallet API + Crypto</a>
+  <h2>สรุป</h2>
+  <a href="#layer5">🧹 L5: Keep / Drop</a>
+  <a href="#layer6">🔍 L6: Feature Deep-Dive</a>
+  <a href="#tldr">📌 TL;DR</a>
+</nav>
+<main id="top">
+
+<h1>🏺 System Archaeology (ฉบับละเอียด) — 3rd-payment · que_payment · 3rd-gateway</h1>
+<p class="meta">วิเคราะห์จากการอ่านไฟล์จริง (2026-06-12) · อ้างอิง <code>docs/repo-map.md</code> · หลักฐานแข็ง = โค้ดจริงพร้อม file:line · (?) = ยังไม่ยืนยัน 100% · ฉบับย่อ markdown: <code>docs/archaeology-payment-trio.md</code></p>
+
+<div class="card warn">
+<strong>⚠️ 5 เรื่องด่วนที่ verified แล้ว</strong>
+<ol>
+<li><strong>Bug จริง</strong> <span class="fileref">3rd-gateway/gateway-hub/tmn-one/main.go:172</span> — <code>FundTransfer</code> (wallet→wallet) เช็คเงื่อนไขกลับด้าน: <strong>โอนสำเร็จแต่ return error</strong> → เสี่ยงโอนซ้ำ</li>
+<li><strong>Hardcoded secrets</strong> — API key ของ <code>dp.thezeus.tech</code> ใน <span class="fileref">install-helm.go:14</span> + Mongo creds ใน docker-compose ของ que_payment</li>
+<li><strong>Endpoint การเงินไม่มี auth</strong> — <code>/payin</code>, <code>/create-withdraw</code>, <code>/adjust-balance</code> พึ่ง network isolation อย่างเดียว</li>
+<li><strong>เงินทั้งระบบเป็น float64</strong> รวมถึงเทียบด้วย <code>==</code> และการหัก/คืน bank_summary ไม่ atomic</li>
+<li><strong>callback.go ไฟล์เดียว ~16,000 บรรทัด</strong> — switch ต่อ provider ซ้ำกัน 2 repo (dup ~40-50%) และจาก matrix ด้านล่าง: <strong>provider ส่วนใหญ่เช็คแค่ status/order — ไม่มี signature</strong></li>
+</ol>
+</div>
+
+<h2 id="scope">🧭 Scope</h2>
+<ul>
+<li><strong>โหมด:</strong> deep-dive ทั้ง 3 service (Layer 0–6) + รอบขุดเพิ่ม: route inventory ครบทุกเส้น, provider verification matrix, data dictionary, state machine, cron/handler detail, TrueWallet API inventory</li>
+<li><strong>ขนาด:</strong> 3rd-payment ~71k บรรทัด (313 ไฟล์) · que_payment ~34k บรรทัด (245 ไฟล์) · 3rd-gateway ~5k บรรทัด (49 ไฟล์)</li>
+<li><strong>Out of scope:</strong> อ่านโค้ดครบทุก provider ทั้ง 67 ตัว (อ่านเชิงลึกตัวแทน: cloudpay, anypayth, anypay, peer2pay + ไล่ case ใน switch ครบ), repo ปลายทาง (office-api-v10, go_report) นอกจุดเชื่อมต่อ, ค่า env production ใน k8s manifest</li>
+</ul>
+<div class="card info">
+<strong>ภาพรวม 1 บรรทัด:</strong> <code>3rd-payment</code> = REST aggregator คุยกับ payment provider ~67 เจ้า (สร้าง order ฝาก/ถอน + รับ callback) → ส่งงาน async ผ่าน RabbitMQ ให้ <code>que_payment</code> (worker ประมวลผล + จัดการยอด bank_summary + callback กลับ office) ส่วน <code>3rd-gateway</code> = ตู้เซฟ credential กระเป๋า TrueMoney Wallet + ตัวสั่งโอนเงิน (ลูกค้าหลักคือ withdraw-auto)
+</div>
+
+<h2 id="layer0">📂 Layer 0: Runtime / Ops Reality</h2>
+
+<h3>3rd-payment</h3>
+<ul>
+<li><strong>Deploy:</strong> Docker (Alpine) → CI build.yaml → Kaniko → JFrog → K8s GitOps; HTTP <strong>port 8081</strong> (<span class="fileref">app.go:150</span>), graceful shutdown 60s</li>
+<li><strong>Bootstrap ตามลำดับ</strong> (<span class="fileref">app.go:33-183</span>): Telegram bot + webhook → Gin + CORS → MongoDB (<span class="fileref">db/connect.db.go:39-50</span>) → Redis lock (thorlock) → OTel/Jaeger → Telegram error notifier → MongoDB event writer → Prometheus (<code>NewPrometheus("gin")</code>) → OTel middleware (W3C) → route 5 กลุ่ม (Manage, BankTransferGateway, Peer2Pay, Xpay, CallByPayment)</li>
+<li><strong>Env-dependent behavior:</strong> <code>MODE != "production"</code> → โหลด <code>.env</code> (<span class="fileref">_cmd/main.go:16</span>) + <strong>บังคับ RabbitMQ = <code>amqp://guest:guest@127.0.0.1:5672</code></strong> (<span class="fileref">service/rabbit/que-payment.go:48-50</span>); <code>CHECK_IPWHITELIST=TRUE</code> → เปิด IP whitelist callback (<span class="fileref">middleware/ipwhitelist.go:23</span>); <code>MERCHANT_CODE</code> → queue <code>QUE_MERCHANT_&lt;code&gt;</code> (<span class="fileref">que-payment.go:32-38</span>)</li>
+</ul>
+<details><summary>ตาราง Environment variables ครบ (3rd-payment — 25+ ตัว)</summary>
+<table>
+<tr><th>Variable</th><th>หน้าที่</th><th>หลักฐาน</th></tr>
+<tr><td><code>MODE</code></td><td>dev → โหลด .env + RabbitMQ local</td><td><span class="fileref">_cmd/main.go:16</span></td></tr>
+<tr><td><code>DB_ENDPOINT</code> / <code>DB_DBNAME</code></td><td>MongoDB URI / DB (<code>demo_office</code> ใน compose — มี password ในไฟล์ ⚠️)</td><td>docker-compose</td></tr>
+<tr><td><code>SYSTEM_CODE</code></td><td>tenant filter ทุก query</td><td><span class="fileref">repository/main.go:29</span></td></tr>
+<tr><td><code>PROJECT</code></td><td>ชื่อ service ใน OTel (default "3rd-payment")</td><td><span class="fileref">app.go:109</span></td></tr>
+<tr><td><code>REDIS_URL/PSW/DB</code></td><td>Redis connection</td><td><span class="fileref">service/thorlock/couterRedis.go:29-32</span></td></tr>
+<tr><td><code>BOT_TELEGRAM_TOKEN/URL_WEBHOOK/SECRET</code></td><td>Telegram bot โต้ตอบ (webhook + secret validate)</td><td><span class="fileref">app.go:35-37</span></td></tr>
+<tr><td><code>TELEGRAM_ERROR_BOT_TOKEN/CHAT_ID/ONCALL_CHAT_ID</code></td><td>error alert + oncall</td><td><span class="fileref">app.go:112-114</span></td></tr>
+<tr><td><code>CHECK_IPWHITELIST</code></td><td>"TRUE" = enforce IP whitelist callback</td><td><span class="fileref">middleware/ipwhitelist.go:23</span></td></tr>
+<tr><td><code>OTEL_CONNECT</code></td><td>OTel/Jaeger endpoint</td><td><span class="fileref">observability/init.go:13</span></td></tr>
+<tr><td><code>ENCRYPTION_ENDPOINT</code></td><td>encryption service ภายนอก (CLOUDPAY/VISAPAY/JIBPAYX)</td><td><span class="fileref">controller/cloudpay/func.go:117</span></td></tr>
+<tr><td><code>PAYMENT_DETAIL_URL</code> / <code>PAYMENT_DETAIL_PRIVATE_KEY</code></td><td>หน้า payment detail + JWT signing ลิงก์</td><td><span class="fileref">controller/deposit.go:1954,2562</span></td></tr>
+<tr><td><code>DOMAIN_WEB</code></td><td>โดเมน URL ชำระเงิน</td><td><span class="fileref">controller/deposit.go:5077</span></td></tr>
+<tr><td><code>MERCHANT_CODE</code></td><td>เปลี่ยนชื่อ queue เป็น QUE_MERCHANT_*</td><td><span class="fileref">service/rabbit/que-payment.go:29</span></td></tr>
+<tr><td><code>AUTH_KEY</code> + <code>ALLOW_IP</code></td><td>auth เฉพาะกลุ่ม dashboard</td><td><span class="fileref">controller/dashboard/main.go:22,130</span></td></tr>
+<tr><td><code>TEST_BANK_CODE/NAME/NUMBER</code></td><td>ข้อมูลทดสอบ payment config</td><td><span class="fileref">controller/testPayment/testPayment.go:58-60</span></td></tr>
+<tr><td><code>THIRD_P2P_KEY</code></td><td>key สำหรับ Peer2Pay integration</td><td><span class="fileref">controller/main.go:2440</span></td></tr>
+</table>
+</details>
+<table>
+<tr><th>Blast Radius</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Upstream</strong></td><td>office-api-v10 (<code>PAYMENT_API</code> 🟢), SCHEDULE_SERVICE_BANK (🟡), payment providers ~67 เจ้า (webhook), topupserie ผ่าน office (?)</td></tr>
+<tr><td><strong>Downstream</strong></td><td>provider APIs ~67 เจ้า, go_report (<code>API_REPORT</code> 🟢), ⟿ <code>QUE_PAYMENT_&lt;NAME&gt;</code> → que_payment (🟢), <code>ENCRYPTION_ENDPOINT</code>, Telegram</td></tr>
+</table>
+
+<h3>que_payment</h3>
+<ul>
+<li><strong>ไม่ใช่ HTTP server</strong> — pure worker, Docker multi-stage (Go 1.25-alpine), ดาวน์โหลด RDS CA bundle ตอน start</li>
+<li><strong>Deploy 1 instance ต่อ 1 provider:</strong> <code>PAYMENT_NAME</code> = ชื่อ queue ที่ consume, <code>TYPE</code> = <code>QUE_RABBIT</code> (consumer) | <code>QUE_CRONJOB</code> (cron) (<span class="fileref">app.go:95-167</span>); โหมด cron แยกย่อยด้วย <code>PAYMENT_NAME=BANK_SUMMARY_RECOVER</code> / <code>AUTOMATION_RETRY_CALLBACK_STATUS</code> / default (UpdateRedis + RetryOrder + StartServV2)</li>
+<li><strong>Bootstrap:</strong> Sentry → ShutdownManager (SIGINT/SIGTERM) → OTel → Telegram notifier → MongoDB (timeout 30s) → MongoDB event writer → Redis → RabbitMQ V2 consumer หรือ cron (<span class="fileref">_cmd/main.go:1-54</span>, <span class="fileref">app.go:22-168</span>)</li>
+<li><strong>Secret รั่ว:</strong> docker-compose hardcode <code>mongodb://useradmin:Aa112233@3.1.8.89:27017</code> ⚠️ + <code>SERVICE=TESTSERVICE</code>, <code>BANK_NUMBER=2420260295</code></li>
+<li><strong>Env เพิ่มเติม:</strong> <code>RABBIT_MQ</code>/<code>RABBIT_MQ_DEVELOPMENT</code>, <code>RABBIT_MQ_HOST/PORT</code> (OTel attr), <code>SENTRY_DSN</code>, <code>JAEGER_URL</code> (ใส่ลิงก์ใน Telegram alert)</li>
+</ul>
+
+<h3>3rd-gateway</h3>
+<ul>
+<li><strong>Deploy:</strong> Docker (Go 1.23.3, TZ Asia/Bangkok), HTTP <strong>port 8000</strong> hardcode (<span class="fileref">app.go:65</span>), <strong>OTel ถูก comment ปิด</strong> (<span class="fileref">app.go:39-48</span>), request logger ปิด (<span class="fileref">app.go:54</span>)</li>
+<li><strong>Env:</strong> <code>AES_KEY_FIX32</code> (ต้องยาว 32 bytes เป๊ะ — กุญแจเดียวของ credential ทุกบัญชี = SPOF), <code>PRIV_KEYSET/PUB_KEYSET</code> (Google Tink/KMS — มีโค้ดแต่ยังไม่ถูก route ไหนใช้), <code>PROXY_URL</code> (ยิง TrueWallet ผ่าน proxy ได้ + <strong>println PROXY_URL ลง console</strong> <span class="fileref">tmn-one/client.go:210</span>), <code>BANK_CODE</code>, Mongo, Redis</li>
+<li><strong>Mongo pool:</strong> connectTimeout 180s ❗, minPool 3, maxPool 10, idle 5 นาที (<span class="fileref">rsconn/mongo-db.go:13-18</span>); Redis: idle timeout 1 นาที + health-check ping ทุก 30 วิ (set client = nil ถ้า fail) (<span class="fileref">rsconn/redis.go:52-79</span>)</li>
+</ul>
+<table>
+<tr><th>Blast Radius</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Upstream</strong></td><td>withdraw-auto (<code>URL_GATEWAY</code> 🟢), office-api-v10 (<code>GATEWAY_API</code> 🟡), running-bank (🟡)</td></tr>
+<tr><td><strong>Downstream</strong></td><td>TrueWallet ผ่าน proxy <code>https://api.tmn.one/proxy.dev.php/tmn-mobile-gateway/...</code> (19 endpoint — ดู <a href="#tmn">section TrueWallet</a>), <code>dp.thezeus.tech/api/initWithdraw</code> (Helm provisioner, API key hardcode <span class="fileref">install-helm.go:14</span>)</td></tr>
+</table>
+
+<h2 id="layer1">📂 Layer 1: โครงสร้าง &amp; Entry Points</h2>
+<table>
+<tr><th></th><th>3rd-payment</th><th>que_payment</th><th>3rd-gateway</th></tr>
+<tr><td><strong>Stack</strong></td>
+<td>Go 1.25.5, Gin 1.11.0, mongo-driver 1.17.4, go-redis v8.11.5, streadway/amqp 1.1.0, otelgo 0.0.7, OTel 1.41.0, golang-jwt v5, shopspring/decimal 1.4.0 (ใช้บางจุด), resty 2.16.5, skip2/go-qrcode (2020)</td>
+<td>Go 1.25.5, mongo-driver 1.17.4, go-redis <strong>v9.11.0</strong>, streadway/amqp, resty, samber/lo 1.51, decimal (ใช้แค่ anypay), Sentry, golang.org/x/crypto</td>
+<td>Go 1.23, Gin, <strong>go-mongox</strong> (ORM + hooks), <strong>Google Tink</strong> (AEAD/KMS), zap, go-redis v8</td></tr>
+<tr><td><strong>บทบาท</strong></td><td>Payment aggregator (sync API)</td><td>Payment worker (async) + cron</td><td>Wallet credential vault + transfer executor</td></tr>
+<tr><td><strong>Entry</strong></td><td><code>_cmd/main.go</code> → <code>app.StartServ()</code> (<code>StartCronjob()</code> comment ทิ้ง)</td><td><code>_cmd/main.go</code> → ShutdownManager → <code>app.StartServ()</code> แยกด้วย <code>TYPE</code></td><td><code>_cmd/main.go</code> → <code>app.go</code></td></tr>
+<tr><td><strong>Module</strong></td><td><code>app</code></td><td><code>app</code></td><td><code>app</code> — ชนกันทั้ง 3 repo</td></tr>
+</table>
+<div class="card warn"><strong>ระวัง:</strong> <code>streadway/amqp</code> archived → ควรเป็น <code>rabbitmq/amqp091-go</code> · ไม่มี test (ยกเว้น classifier_test.go ใน que_payment) · module name <code>app</code> ซ้ำทั้ง 3 repo</div>
+
+<h2 id="layer2">🔄 Layer 2: API Contracts &amp; Data Flow</h2>
+
+<h3 id="l2-routes-pay">3rd-payment — Route ครบ 132 เส้น (อ่านจาก routes/ ทุกไฟล์)</h3>
+<p class="meta">📌 ทุกเส้น<strong>ไม่มี auth middleware</strong> ยกเว้น callback (IPWhitelist) และ dashboard (AUTH_KEY+ALLOW_IP เช็คในตัว handler) — Legend: <span class="badge b-red">CB</span> = callback จาก provider ภายนอก (มี IPWhitelistMiddleware)</p>
+
+<details open><summary>กลุ่ม /api/v2 — Manage core (80 เส้น) <span class="fileref">routes/main.go:29-120</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>#</th><th>M</th><th>Path (/api/v2 + …)</th><th>Handler</th><th>หมายเหตุ</th><th>line</th></tr>
+<tr><td>1</td><td>GET</td><td>/get-order/:order_no</td><td>orderController.GetOrderByOrderNo</td><td>ดึง order ฝาก</td><td>29</td></tr>
+<tr><td>2</td><td>POST</td><td>/create-order</td><td>orderController.CreateNewOrder</td><td>สร้าง order</td><td>30</td></tr>
+<tr><td>3</td><td>POST</td><td>/new-order-payin</td><td>orderController.NewOrderPayin</td><td>สร้าง order (ทางเลือก)</td><td>31</td></tr>
+<tr><td>4</td><td>POST</td><td>/get-order-transaction</td><td>orderController.GetOrderTransaction</td><td>ตรวจ transaction</td><td>32</td></tr>
+<tr><td>5</td><td>POST</td><td>/get-payment-list-by-name</td><td>GetPaymentListByName</td><td>list providers</td><td>35</td></tr>
+<tr><td>6</td><td>POST</td><td>/update-payment-list-by-payment-code</td><td>UpdatePaymentListByPaymentCode</td><td>แก้ config</td><td>36</td></tr>
+<tr><td>7</td><td>POST</td><td>/create-config-payment</td><td>CreateConfigPayment(repo,redis,false)</td><td>สร้าง config (เก็บ secret plaintext ⚠️)</td><td>37</td></tr>
+<tr><td>8</td><td>POST</td><td>/update-config-payment</td><td>UpdateConfigPayment(...,false)</td><td>แก้ config</td><td>38</td></tr>
+<tr><td>9</td><td>POST</td><td>/create-indo-config-payment</td><td>CreateConfigPayment(...,true)</td><td>config ฝั่ง Indo</td><td>39</td></tr>
+<tr><td>10</td><td>POST</td><td>/update-indo-config-payment</td><td>UpdateConfigPayment(...,true)</td><td>config ฝั่ง Indo</td><td>40</td></tr>
+<tr><td>11</td><td>GET</td><td>/get-config-payment/:payment_code</td><td>GetConfigPayment</td><td>อ่าน config (คืน secret ⚠️)</td><td>41</td></tr>
+<tr><td>12</td><td>GET</td><td>/test-payment/:payment_code</td><td>TestPaymentConfig</td><td>ทดสอบเชื่อม provider</td><td>42</td></tr>
+<tr><td>13</td><td>POST</td><td>/test-payment-v2/:payment_name</td><td>TestPaymentConfigV2</td><td>ทดสอบ v2</td><td>43</td></tr>
+<tr><td>14</td><td>POST</td><td>/check-payment-config/:payment_code</td><td>CheckPaymentConfig</td><td>validate config</td><td>44</td></tr>
+<tr><td>15</td><td>POST</td><td>/re-create-statement/:service/:paymentCode/:orderNo</td><td>ReCreateStatement</td><td>สร้าง statement ใหม่</td><td>46</td></tr>
+<tr><td>16</td><td>GET</td><td>/get-payment-transection-detail/:orderNo</td><td>GetPaymentTransectionDetail</td><td>ข้อมูลหน้า payment detail</td><td>47</td></tr>
+<tr><td>17</td><td>POST</td><td>/get-bankconfig</td><td>GetBankConfig</td><td>config ธนาคาร</td><td>48</td></tr>
+<tr><td>18</td><td>POST</td><td>/update-bankconfig</td><td>UpdateBankConfigDepositType</td><td>แก้ bank config</td><td>49</td></tr>
+<tr><td>19</td><td>POST</td><td>/get-bank-support</td><td>GetListBankSupport</td><td>list ธนาคาร (Redis cache)</td><td>50</td></tr>
+<tr><td>20</td><td>POST</td><td>/get-bank-support/clear-redis</td><td>ClearRedisGetListBankSupport</td><td>ล้าง cache</td><td>51</td></tr>
+<tr><td>21</td><td>POST</td><td>/token-bigpay/clear-redis</td><td>ClearRedisTokenBigpay</td><td>ล้าง token BigPay</td><td>52</td></tr>
+<tr><td>22</td><td>POST</td><td><strong>/payin</strong></td><td>Deposit(repo, thorRedis)</td><td><strong>ฝากเงิน — flow หลัก</strong></td><td>53</td></tr>
+<tr><td>23</td><td>POST</td><td>/upload-slip-autopeer</td><td>UploadSlipAutopeer</td><td>อัปสลิป manual</td><td>54</td></tr>
+<tr><td>24</td><td>POST</td><td><strong>/callback-payin/:payment_code</strong> <span class="badge b-red">CB</span></td><td>CallbackDeposit</td><td><strong>webhook ฝาก</strong></td><td>55</td></tr>
+<tr><td>25</td><td>POST</td><td>/callback-payin/:payment_code/callback/qrStatus <span class="badge b-red">CB</span></td><td>CallbackDeposit</td><td>P2P QR status</td><td>56</td></tr>
+<tr><td>26</td><td>POST</td><td>/callback-one-link/:payment_name/:payment_code <span class="badge b-red">CB</span></td><td>CallbackOneLink</td><td>callback รวม</td><td>57</td></tr>
+<tr><td>27</td><td>POST</td><td>/callback-one-link/.../deposit <span class="badge b-red">CB</span></td><td>CallbackOneLink</td><td>เฉพาะฝาก</td><td>58</td></tr>
+<tr><td>28</td><td>POST</td><td>/callback-one-link/.../withdraw <span class="badge b-red">CB</span></td><td>CallbackOneLink</td><td>เฉพาะถอน</td><td>59</td></tr>
+<tr><td>29</td><td>POST</td><td><strong>/create-withdraw</strong></td><td>CreateWithdraw</td><td><strong>สร้างรายการถอน</strong></td><td>60</td></tr>
+<tr><td>30</td><td>POST</td><td>/confirm-withdraw</td><td>ConfirmWithdraw</td><td>ยืนยันถอน → ⟿ queue</td><td>61</td></tr>
+<tr><td>31</td><td>POST</td><td>/reconfirm-withdraw</td><td>ReConfirmWithdraw</td><td>ยืนยันซ้ำ</td><td>62</td></tr>
+<tr><td>32</td><td>POST</td><td>/refund-withdraw-payment</td><td>RefundWithdrawPayment</td><td>คืนเงินถอน</td><td>63</td></tr>
+<tr><td>33</td><td>POST</td><td><strong>/callback-payout/:payment_code</strong> <span class="badge b-red">CB</span></td><td>CallbackWithdraw</td><td><strong>webhook ถอน</strong></td><td>64</td></tr>
+<tr><td>34</td><td>POST</td><td>/callback-payout/autopeer/:payment_code <span class="badge b-red">CB</span></td><td>CallbackWithdrawAutopeer</td><td>Autopeer</td><td>65</td></tr>
+<tr><td>35</td><td>POST</td><td>/callback-payout/umpay/:payment_code <span class="badge b-red">CB</span></td><td>CallbackWithdrawUMPAY</td><td>UMPAY</td><td>66</td></tr>
+<tr><td>36</td><td>POST</td><td>/check-uuid/umpay/:payment_code/:uuid</td><td>CheckUUIDUMPAY</td><td>validate UUID</td><td>67</td></tr>
+<tr><td>37</td><td>POST</td><td>/callback-payout/:payment_code/withdraw <span class="badge b-red">CB</span></td><td>CallbackWithdraw</td><td>HengPay variant</td><td>68</td></tr>
+<tr><td>38</td><td>POST</td><td><strong>/adjust-balance</strong> ❗❗</td><td>AdjustBalance</td><td>แก้ยอด manual — ไม่มี auth</td><td>69</td></tr>
+<tr><td>39</td><td>GET</td><td>/get-deposit</td><td>GetDepositAll</td><td>list ฝากทั้งหมด</td><td>70</td></tr>
+<tr><td>40</td><td>POST</td><td>/check/order/:payment_code</td><td>TransactionOrder</td><td>เช็คสถานะ order</td><td>71</td></tr>
+<tr><td>41</td><td>POST</td><td>/check/ordercall/:payment_code/:service</td><td>TransactionOrderCallback</td><td>validate callback</td><td>72</td></tr>
+<tr><td>42</td><td>POST</td><td>/check/neworder/:payment_code/:order</td><td>TransactionNewOrder</td><td>ตรวจ order ใหม่</td><td>73</td></tr>
+<tr><td>43</td><td>POST</td><td>/confirm-transaction-payin</td><td>ConfirmTransactionPayin</td><td>ยืนยันฝาก manual</td><td>74</td></tr>
+<tr><td>44</td><td>POST</td><td>/confirm-transaction-payin-slip</td><td>ConfirmTransactionPayinBySlip</td><td>ยืนยันด้วยสลิป</td><td>75</td></tr>
+<tr><td>45</td><td>POST</td><td>/username/statement</td><td>GetStatementByUsername</td><td>ประวัติฝากราย user</td><td>76</td></tr>
+<tr><td>46</td><td>GET</td><td>/get-statement-withdraw/:payment_code</td><td>GetStatementWithdraw</td><td>ประวัติถอน</td><td>77</td></tr>
+<tr><td>47</td><td>GET</td><td>/get-statement-withdraw-by-orderNo/:orderNo</td><td>GetStatementWithdrawByOrderNo</td><td>ถอนราย order</td><td>78</td></tr>
+<tr><td>48</td><td>POST</td><td>/get-statement-withdraw-by-orderNo</td><td>GetStatementWithdrawByOrderNoBatch</td><td>batch lookup</td><td>79</td></tr>
+<tr><td>49</td><td>POST</td><td>/get-payment-auto-withdraw</td><td>GetPaymentAutoWithdraw</td><td>setting auto-withdraw</td><td>80</td></tr>
+<tr><td>50</td><td>GET</td><td>/get-bank-summary/:service</td><td>GetBankSummaryByService</td><td>ยอด bank_summary</td><td>81</td></tr>
+<tr><td>51</td><td>POST</td><td>/update-active-status-bank-summary</td><td>UpdateActiveStatusBankSummary</td><td>เปิด/ปิด summary</td><td>82</td></tr>
+<tr><td>52</td><td>POST</td><td>/request-resend-callback/:payment_code/:order</td><td>RequestResendCallback</td><td>retry webhook</td><td>83</td></tr>
+<tr><td>53</td><td>POST</td><td>/change-status-deposit-payment ❗</td><td>ChangeStatusPaymentDeposit</td><td>override สถานะฝาก</td><td>86</td></tr>
+<tr><td>54</td><td>POST</td><td>/balance</td><td>Balance</td><td>เช็คยอด provider</td><td>88</td></tr>
+<tr><td>55</td><td>GET</td><td>/check/balance</td><td>CheckBalanceWeb</td><td>เช็คยอด (web)</td><td>89</td></tr>
+<tr><td>56-59</td><td>POST</td><td>/{deposit,topup,withdraw,payout}/statement</td><td>Check*Stament</td><td>ประวัติ 4 ประเภท</td><td>90-93</td></tr>
+<tr><td>60-63</td><td>POST</td><td>/{deposit,topup,withdraw,payout}/statementV2</td><td>Check*StamentV2</td><td>V2 (topup ใช้ handler deposit ร่วม)</td><td>94-97</td></tr>
+<tr><td>64</td><td>POST</td><td>/deposit/report</td><td>ReportDeposit</td><td>รายงานฝาก</td><td>98</td></tr>
+<tr><td>65</td><td>POST</td><td>/deposit/reportV2</td><td>ReportDepositV2</td><td>รายงาน V2</td><td>99</td></tr>
+<tr><td>66</td><td>POST</td><td>/withdraw/payment</td><td>WithdrawPayment</td><td>ประมวลผลถอน</td><td>100</td></tr>
+<tr><td>67</td><td>POST</td><td>/cancel/payout</td><td>CancelPayout</td><td>ยกเลิก payout</td><td>101</td></tr>
+<tr><td>68</td><td>POST</td><td>/callback-transaction/:payment_code</td><td>CallbackTransaction</td><td>callback ทั่วไป (ไม่มี IPWhitelist ⚠️)</td><td>102</td></tr>
+<tr><td>69</td><td>POST</td><td>/submit-withdraw</td><td>SubmitWithdraw</td><td>ส่งคำขอถอน</td><td>103</td></tr>
+<tr><td>70</td><td>POST</td><td>/create-member-data</td><td>CronjobStatement</td><td>เก็บ member data (ซาก cron)</td><td>106</td></tr>
+<tr><td>71-73</td><td>POST</td><td>/corepay-user-register(-all), /corepay-user-cancel</td><td>Corepay*</td><td>สมัคร/ยกเลิกบัญชี CorePay</td><td>107-109</td></tr>
+<tr><td>74</td><td>POST</td><td>/confirm-bank-deposit</td><td>ConfirmBankDepositByOffice</td><td>office ยืนยันฝาก</td><td>112</td></tr>
+<tr><td>75</td><td>POST</td><td>/cancel-bank-deposit</td><td>CancelBankDepositByOffice</td><td>office ยกเลิกฝาก</td><td>113</td></tr>
+<tr><td>76</td><td>POST</td><td>/update-active-bank-deposit</td><td>UpdateActiveBankDeposit</td><td>แก้บัญชีลูกค้า</td><td>114</td></tr>
+<tr><td>77</td><td>POST</td><td>/statement-deposit-not-confirm</td><td>StatementDepositNotConfirm</td><td>ฝากค้างยืนยัน</td><td>115</td></tr>
+<tr><td>78</td><td>POST</td><td>/update-callback</td><td>UpdateCallback</td><td>แก้ callback URL</td><td>118</td></tr>
+<tr><td>79</td><td>POST</td><td>/register-bank-withdraw</td><td>RegisterBankWithdraw</td><td>ผูกบัญชีถอน</td><td>119</td></tr>
+<tr><td>80</td><td>POST</td><td>/update-bank-withdraw</td><td>UpdateBankWithdraw</td><td>แก้บัญชีถอน</td><td>120</td></tr>
+</table>
+</div>
+</details>
+
+<details><summary>กลุ่ม /api/v2/dashboard (6) + /api/v2/bot (4) + report/misc (8) + Peer2Pay ใน /api/v2 (7) <span class="fileref">routes/main.go:124-159</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>#</th><th>M</th><th>Path</th><th>Handler</th><th>หมายเหตุ</th><th>line</th></tr>
+<tr><td>81</td><td>GET</td><td>/api/v2/dashboard/balancePayment</td><td>dashboard.BalancePaymentV2</td><td rowspan="6">auth = AUTH_KEY + ALLOW_IP เช็คใน handler</td><td>124</td></tr>
+<tr><td>82</td><td>GET</td><td>/api/v2/dashboard/balancePaymentByCs/:payment_name</td><td>dashboard.BalancePaymentV2ByCs</td><td>125</td></tr>
+<tr><td>83</td><td>POST</td><td>/api/v2/dashboard/balancePayment</td><td>dashboard.BalancePayment</td><td>126</td></tr>
+<tr><td>84</td><td>POST</td><td>/api/v2/dashboard/dashboard</td><td>dashboard.Dashboard</td><td>127</td></tr>
+<tr><td>85</td><td>POST</td><td>/api/v2/dashboard/transaction</td><td>dashboard.Transaction</td><td>128</td></tr>
+<tr><td>86</td><td>POST</td><td>/api/v2/dashboard/profit</td><td>dashboard.DashboardProfit</td><td>129</td></tr>
+<tr><td>87</td><td>POST</td><td>/api/v2/retry-payment-sendffice</td><td>RetryPaymentSendOffice</td><td>retry ส่ง office</td><td>132</td></tr>
+<tr><td>88</td><td>POST</td><td>/api/v2/virify/slip <em>(typo)</em></td><td>VerifySlip</td><td>verify สลิป</td><td>135</td></tr>
+<tr><td>89</td><td>POST</td><td>/api/v2/callback/verify_slip/:payment_code/:order_no</td><td>CallbackVerifySlipAndConfirm</td><td>callback verify slip</td><td>136</td></tr>
+<tr><td>90</td><td>POST</td><td>/api/v2/report/payment</td><td>GetReportByFilter</td><td>รายงาน</td><td>139</td></tr>
+<tr><td>91</td><td>POST</td><td>/api/v2/update/report-payment</td><td>UpdateReportCurrent</td><td>update รายงาน</td><td>140</td></tr>
+<tr><td>92</td><td>POST</td><td>/api/v2/update-old/report-payment</td><td>UpdateDataOldPayment</td><td>legacy update</td><td>141</td></tr>
+<tr><td>93</td><td>GET</td><td>/api/v2/update-report-test <span class="badge b-red">dead</span></td><td>UpdateReportTest</td><td>test route ใน prod</td><td>143</td></tr>
+<tr><td>94</td><td>GET</td><td>/api/v2/filter-report-test2 <span class="badge b-red">dead</span></td><td>FilterTest</td><td>test route ใน prod</td><td>144</td></tr>
+<tr><td>95</td><td>POST</td><td>/api/v2/create-p2p-qrpayment</td><td>CreateQrPaymentPEER2PAY</td><td rowspan="7">ชุด Peer2Pay ใน /api/v2 (ซ้ำกับ /peer2pay/v3)</td><td>146</td></tr>
+<tr><td>96</td><td>POST</td><td>/api/v2/get-bankconfig-p2p</td><td>GetBankConfigPEER2PAY</td><td>147</td></tr>
+<tr><td>97</td><td>POST</td><td>/api/v2/status-p2p-qrpayment</td><td>UpdateStatusQrPaymentPEER2PAY</td><td>148</td></tr>
+<tr><td>98</td><td>POST</td><td>/api/v2/get-tranfer-history-peer2pay</td><td>GetTransferHistoryPeer2Pay</td><td>149</td></tr>
+<tr><td>99</td><td>POST</td><td>/api/v2/check_balance_p2p</td><td>CheckBalanceP2P</td><td>150</td></tr>
+<tr><td>100</td><td>POST</td><td>/api/v2/existing-uid</td><td>ExistingBankNumber</td><td>151</td></tr>
+<tr><td>101</td><td>GET</td><td>/api/v2/p2cpay/channels/:payment_code</td><td>GetP2CPayChannels</td><td>152</td></tr>
+<tr><td>102</td><td>POST</td><td>/api/v2/bot/log-telegram-list</td><td>GetListLogTelegram</td><td rowspan="4">Telegram bot module</td><td>156</td></tr>
+<tr><td>103</td><td>POST</td><td>/api/v2/bot/send-message</td><td>SendMessage</td><td>157</td></tr>
+<tr><td>104</td><td>POST</td><td>/api/v2/bot/update-log-telegram</td><td>UpdateStautusAndRemarkLogTelegram</td><td>158</td></tr>
+<tr><td>105</td><td>POST</td><td>/api/v2/bot/webhook</td><td>WebHookTelegram</td><td>159</td></tr>
+</table>
+</div>
+</details>
+
+<details><summary>กลุ่ม /peer2pay/v3 (10) + /api/xpay/private (1) + /bank-gateway (15) + /call-pm (1) <span class="fileref">routes/main.go:168-186, bank-transfer-gateway.go:36-55, call-by-payment.go:39</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>#</th><th>M</th><th>Path</th><th>Handler</th><th>หมายเหตุ</th><th>line</th></tr>
+<tr><td>106</td><td>POST</td><td>/peer2pay/v3/payin</td><td>Deposit</td><td>handler เดียวกับ /api/v2</td><td>168</td></tr>
+<tr><td>107</td><td>POST</td><td>/peer2pay/v3/callback-payin/:payment_code <span class="badge b-red">CB</span></td><td>CallbackDeposit</td><td></td><td>169</td></tr>
+<tr><td>108</td><td>POST</td><td>/peer2pay/v3/callback-payin/.../qrStatus <span class="badge b-red">CB</span></td><td>CallbackDeposit</td><td></td><td>170</td></tr>
+<tr><td>109</td><td>POST</td><td>/peer2pay/v3/callback-payout/:payment_code <span class="badge b-red">CB</span></td><td>CallbackWithdraw</td><td></td><td>171</td></tr>
+<tr><td>110-115</td><td>POST</td><td>/peer2pay/v3/{create-p2p-qrpayment, get-bankconfig-p2p, status-p2p-qrpayment, get-tranfer-history-peer2pay, create-withdraw, confirm-withdraw}</td><td>ตาม /api/v2</td><td>ชุดซ้ำ</td><td>172-177</td></tr>
+<tr><td>116</td><td>POST</td><td>/api/xpay/private/callback-payin/:payment_code <span class="badge b-red">CB</span></td><td>CallbackDepositXpayPrivate</td><td>Xpay private hook</td><td>186</td></tr>
+<tr><td>117</td><td>POST</td><td>/bank-gateway/get-bank-gateway-by-office</td><td>banktranService.GetBankGatewayByOffice</td><td rowspan="3">จัดการ gateway ของ office</td><td>36</td></tr>
+<tr><td>118</td><td>POST</td><td>/bank-gateway/connect-bank-gateway</td><td>ConnectBankGatewayByOffice</td><td>37</td></tr>
+<tr><td>119</td><td>POST</td><td>/bank-gateway/disconnect-bank-gateway</td><td>DisconnectBankGatewayByOffice</td><td>38</td></tr>
+<tr><td>120-123</td><td>POST</td><td>/bank-gateway/{create-group, create-bank-gateway, update-bank-gateway, get-group}</td><td>banktranService.*</td><td>CRUD gateway/group</td><td>41-44</td></tr>
+<tr><td>124</td><td>POST</td><td>/bank-gateway/add-service-in-group</td><td>AddServiceInGroup</td><td></td><td>45</td></tr>
+<tr><td>125-128</td><td>POST</td><td>/bank-gateway/{get-conn-bank-gateway, verify-transfer, confirm-transfer, verify-and-confirm-transfer}</td><td>banktranService.*</td><td>verify/confirm การโอน</td><td>48-51</td></tr>
+<tr><td>129</td><td>POST</td><td>/bank-gateway/add-service-gateway</td><td>CreateServiceBankGateway</td><td></td><td>53</td></tr>
+<tr><td>130</td><td>POST</td><td>/bank-gateway/enc-aes</td><td>EncryptData</td><td>AES utility ⚠️ เปิด public</td><td>54</td></tr>
+<tr><td>131</td><td>POST</td><td>/bank-gateway/call-by-req</td><td>callDemo (closure)</td><td>HTTP proxy ทั่วไป ⚠️</td><td>55</td></tr>
+<tr><td>132</td><td>ANY</td><td>/call-pm/:paymentCode/*byPath <span class="badge b-red">SSRF</span></td><td>ctl.CallByPayment</td><td>forward อะไรก็ได้ไป provider</td><td>cbp:39</td></tr>
+</table>
+</div>
+</details>
+
+<h3 id="l2-routes-gw">3rd-gateway — 7 endpoints <span class="fileref">routes/main.go:26-40</span></h3>
+<table>
+<tr><th>Method</th><th>Path</th><th>หน้าที่</th><th>Auth</th><th>Migrate?</th></tr>
+<tr><td>POST</td><td><code>/api/register</code></td><td>ลงทะเบียน client → ClientID (UUID) + ApiKey (random 32) — ถ้า service+project ซ้ำจะ<strong>คืน credential เดิม</strong>; ตอบกลับเข้ารหัส AES-GCM ด้วย key ที่ client ส่งมาใน <code>Encrypted-Random-Key</code> header (<span class="fileref">controller/customer.go:25-96</span>)</td><td><strong>ไม่มี</strong> ❗</td><td><span class="badge b-yellow">⚠️ ต้อง auth/rate-limit</span></td></tr>
+<tr><td>GET</td><td><code>/api/get-list-gateway</code></td><td>list gateway config ตามสิทธิ์ + connections ของ caller</td><td rowspan="6">AuthClientMiddleware: header <code>Client-Id</code>+<code>API-Key</code> → lookup <code>customer_registry</code> (<span class="fileref">middleware/customer-client.go:24-36</span>) — fail = 502</td><td><span class="badge b-green">✅</span></td></tr>
+<tr><td>POST</td><td><code>/api/get-connected-by-account</code></td><td>ดู connection + decrypt token ฝั่ง client (<span class="fileref">gateway.go:115-163</span>)</td><td><span class="badge b-green">✅</span></td></tr>
+<tr><td>POST</td><td><code>/api/connect-geteway</code></td><td>เชื่อม TrueWallet → เก็บ token เข้ารหัส + ยิง helm installer</td><td><span class="badge b-yellow">⚠️</span></td></tr>
+<tr><td>POST</td><td><code>/api/disconnect-default-geteway</code></td><td>$pull list_connect</td><td><span class="badge b-green">✅</span></td></tr>
+<tr><td>POST</td><td><code>/api/fund-transfer</code></td><td>โอนออกจาก wallet (P2P / เข้าบัญชีธนาคาร)</td><td><span class="badge b-red">❌ bug :172</span></td></tr>
+<tr><td>POST</td><td><code>/api/get-transactions</code></td><td>statement วันนี้ + update token/balance</td><td><span class="badge b-green">✅</span></td></tr>
+</table>
+
+<h3 id="l2-async">Async paths</h3>
+<table>
+<tr><th>ประเภท</th><th>Topic/Queue/Key</th><th>คุณสมบัติ</th><th>รับ payload</th><th>ส่งต่อ</th></tr>
+<tr><td>RabbitMQ <strong>producer</strong> (3rd-payment)</td><td><code>QUE_PAYMENT_&lt;PaymentName&gt;</code> / <code>QUE_MERCHANT_&lt;code&gt;</code></td><td>RPC: ReplyTo + CorrelationId, timeout 120s, inject W3C traceparent (<span class="fileref">service/rabbit/que-payment.go:40-210</span>)</td><td><code>{id, service, type, type_report, date, payment_code, merchant_code}</code></td><td>→ que_payment</td></tr>
+<tr><td>RabbitMQ <strong>consumer</strong> (que_payment)</td><td><code>QUE_PAYMENT_&lt;PAYMENT_NAME&gt;</code></td><td><strong>durable=false ❗</strong>, prefetch=1, manual ack; unmarshal err → <code>Nack(requeue=false)</code> ทิ้งเงียบ; publish-reply err → <code>Nack(requeue=true)</code> วน<strong>ไม่จำกัด</strong>; <strong>ไม่มี DLQ</strong> (<span class="fileref">rabbitmqpub/amqp.go:48-222</span>); V1 legacy ใช้ <code>SYSTEM_CODE</code> (<span class="fileref">:224-285</span>)</td><td>ReqQue 8 type (ดู <a href="#q-handlers">handlers</a>)</td><td>provider + office + ReplyTo</td></tr>
+<tr><td>Cron ทั้ง 5 ตัว</td><td colspan="3">ดูรายละเอียดเต็มที่ <a href="#q-cron">que_payment internals → Cronjobs</a></td><td></td></tr>
+</table>
+
+<h3 id="l2-flows">Inter-Service Flows</h3>
+<table>
+<tr><th>Flow</th><th>Call Chain</th><th>หมายเหตุ</th></tr>
+<tr><td>ฝากเงิน QR</td><td><code>office → [POST /api/v2/payin] → 3rd-payment → 🔒lock → provider → 💾qr_payment → QR</code> แล้ว <code>provider ↩ [POST /callback-payin/:code] → 3rd-payment ⟿ QUE_PAYMENT_&lt;NAME&gt; → que_payment → [POST api/Payment/PaymentCreateStatement/&lt;svc&gt;] → office</code></td><td>เครดิตเข้าที่ que_payment→office ไม่ใช่ 3rd-payment</td></tr>
+<tr><td>ถอนเงิน</td><td><code>office → [POST /create-withdraw] → 3rd-payment 💾withdraw_statement → [POST /confirm-withdraw] ⟿ queue → que_payment (หัก bank_summary → provider.Withdraw) → ↩[api/WithdrawCallback] → office</code></td><td>fail → refund + status 13/12</td></tr>
+<tr><td>รายงาน</td><td><code>3rd-payment → [HTTP API_REPORT] → go_report</code> · queue type REPORT_DATA_* → que_payment aggregate ลง <code>report_day/report_deposit/report_withdraw</code></td><td>2 เส้นทางแยกกัน</td></tr>
+<tr><td>ถอนผ่าน TrueWallet</td><td><code>withdraw-auto → [POST /api/fund-transfer] → 3rd-gateway → InitAccount(decrypt) → TMN verify→confirm → update token/balance → resp</code></td><td>bug :172 ที่ path wallet→wallet</td></tr>
+<tr><td>เชื่อมบัญชี wallet</td><td><code>caller → [POST /api/connect-geteway] → 3rd-gateway → TMN PIN login → 💾gateway_connect + customer_registry → [POST dp.thezeus.tech/api/initWithdraw]</code></td><td>helm error ถูกกลืน</td></tr>
+</table>
+
+<h2 id="providers">🔌 Provider Matrix (ขุดจาก switch ใน callback.go + main.go)</h2>
+
+<h3 id="pv-verify">A. Callback verification matrix — deposit callback (~45 case ใน <span class="fileref">callback.go</span> switch เริ่ม :1282)</h3>
+<div class="card warn"><strong>ข้อค้นพบหลัก:</strong> มีเพียง <strong>~12 จาก ~45 provider</strong> ที่ verify ด้วย crypto (HMAC/RSA/MD5) — ที่เหลือเช็คแค่ status code + order cross-check ซึ่งปลอมได้ถ้า IP whitelist ถูก bypass/ปิด (<code>CHECK_IPWHITELIST</code> เป็น env toggle)</div>
+<div class="tablewrap">
+<table>
+<tr><th>PaymentName</th><th>วิธี verify (deposit callback)</th><th>Quirks</th><th>case ที่</th></tr>
+<tr><td>ANYPAYTH</td><td><span class="badge b-green">HMAC-SHA256</span> header <code>x-signature</code> + <code>x-timestamp</code> (±5 นาที กัน replay)</td><td>raw = <code>ts|refNo|amountJSON|status|ccy|payType|payDate</code>; status "paid"</td><td>1642</td></tr>
+<tr><td>K2PAY</td><td><span class="badge b-yellow">MD5</span> field <code>sn</code> = MD5(amount+gid+order+txid+uid+secret)</td><td>order status 4=success, 5=rejected</td><td>1883</td></tr>
+<tr><td>SUDAHPAY</td><td><span class="badge b-green">RSA verify</span> + status</td><td>signature field ใน callback</td><td>2046</td></tr>
+<tr><td>FLAZZPAY</td><td><span class="badge b-yellow">MD5</span> field <code>sign</code></td><td>concat fields + secret</td><td>2155</td></tr>
+<tr><td>CAPITALPAY</td><td><span class="badge b-yellow">MD5</span> field <code>sign</code> (ตัด sign ออกก่อน SignData)</td><td></td><td>3099</td></tr>
+<tr><td>LUCKYPAY</td><td><span class="badge b-yellow">MD5</span>(merchantNo&clientNo&orderNo&amount&status&txid+secret)</td><td></td><td>3199</td></tr>
+<tr><td>SONICPAY</td><td><span class="badge b-yellow">HMAC-SHA1</span> header <code>x-signature</code></td><td>sign over querystring format</td><td>3982</td></tr>
+<tr><td>CUTPAYZ</td><td><span class="badge b-yellow">MD5</span> field <code>signature</code></td><td></td><td>4800</td></tr>
+<tr><td>CLOUDPAY</td><td><span class="badge b-yellow">MD5</span> field <code>sign</code> (+Key ใน sign string)</td><td>ฝั่งสร้าง order ใช้ RSA ผ่าน ENCRYPTION_ENDPOINT</td><td>4904</td></tr>
+<tr><td>ONEPAY</td><td><span class="badge b-yellow">MD5</span> + status (onepay.VerifySignature)</td><td></td><td>6102</td></tr>
+<tr><td>WORLDPAY</td><td><span class="badge b-green">RSA</span> (encrypted payload + PublicKey)</td><td></td><td>6256</td></tr>
+<tr><td>XUPERMA</td><td><span class="badge b-green">RSA</span></td><td></td><td>6933</td></tr>
+<tr><td>BIBPAY</td><td><span class="badge b-yellow">RSA optional</span> (มี path ไม่ verify)</td><td></td><td>6054</td></tr>
+<tr><td>HYRONPAY</td><td><span class="badge b-yellow">decrypt Data field</span> แล้ว map status</td><td>"PAID"=1, FAILED/EXPIRED/CANCELLED=2</td><td>1421</td></tr>
+<tr><td>P2WPAY</td><td><span class="badge b-red">order cross-check เท่านั้น</span></td><td>"completed"=1, "expired"/"failed"=2</td><td>1286</td></tr>
+<tr><td>HUBPAY</td><td><span class="badge b-red">order cross-check เท่านั้น</span></td><td>map status ใน hubpay.CallbackDepositStatusToCode()</td><td>1359</td></tr>
+<tr><td>AUTOPEERPAY</td><td><span class="badge b-red">amount == เท่านั้น (float ⚠️)</span></td><td>progress tracking จ่ายบางส่วน</td><td>1495</td></tr>
+<tr><td>ANYPAY</td><td><span class="badge b-red">status "00" + TransactionRef lookup</span></td><td>parse เวลาเป็น time.Local ⚠️</td><td>1568</td></tr>
+<tr><td>GM2PAY</td><td><span class="badge b-red">status "paid" เท่านั้น</span></td><td></td><td>1734</td></tr>
+<tr><td>COMPAY</td><td><span class="badge b-yellow">status + inquiry fallback</span> (ยิงถาม provider ซ้ำ)</td><td></td><td>1805</td></tr>
+<tr><td>MAANPAY</td><td><span class="badge b-yellow">status + GetTransactionInfo inquiry</span></td><td></td><td>4498</td></tr>
+<tr><td>MTPAY</td><td><span class="badge b-red">result=="1" เท่านั้น</span></td><td>form-encoded callback</td><td>3594</td></tr>
+<tr><td>UMPAY</td><td><span class="badge b-red">amount + status</span></td><td>มี endpoint check-uuid แยก</td><td>3681</td></tr>
+<tr><td>ZPAY</td><td><span class="badge b-red">status + amount</span></td><td></td><td>4240</td></tr>
+<tr><td>BLACKDOG</td><td><span class="badge b-yellow">multi-status + hash</span></td><td>มี v1/v2 variant</td><td>4314</td></tr>
+<tr><td>BIGPAY</td><td><span class="badge b-red">amount + status</span></td><td>WeakDecode raw callback</td><td>4998</td></tr>
+<tr><td>VISAPAY / JIBPAYX / MTMPAY / SUGARPAY / WEALTHWAVE / GBETPAY / P2CPAY / JAIJAIPAY / MINERAPAY / ZEENYPAY / APAY24 / THUNDERPAY / MYPAYS24 / CUBIXPAY / ASKPAY / AZPAY / DANARAPAY / KISSPAY / FIRST2PAY</td><td><span class="badge b-red">status (± amount/order) เท่านั้น</span></td><td>รายละเอียดต่อเจ้าดู case ใน callback.go ตามบรรทัด: 5278, 5372, 5469, 5545, 5818, 5883, 5959, 6190, 6329, 6427, 6538, 6612, 6750, 6819, 7035, 7136, 7228, 5718, 3292</td><td>—</td></tr>
+</table>
+</div>
+<p class="meta">withdraw-callback switch อยู่ที่ <span class="fileref">callback.go:7338+</span> — เป็น subset ของ provider ที่รองรับถอน (pattern verify เดียวกับฝั่งฝากต่อเจ้า)</p>
+
+<h3 id="pv-support">B. Provider รองรับฝาก vs ถอน (จาก case ใน switch สร้างรายการ)</h3>
+<table>
+<tr><th>ความสามารถ</th><th>Providers</th></tr>
+<tr><td><strong>ฝาก (deposit create)</strong> — 43 เจ้า <span class="fileref">controller/deposit.go:733+</span></td><td>P2WPAY, HYRONPAY, AUTOPEERPAY, ANYPAY, ANYPAYTH, GM2PAY, COMPAY, K2PAY, SUDAHPAY, FLAZZPAY, MTPAY, UMPAY, SONICPAY, BLACKDOG, MAANPAY, ZPAY, CUTPAYZ, CLOUDPAY, BIGPAY, VISAPAY, JIBPAYX, MTMPAY, SUGARPAY, ONEDAYPAY, KISSPAY, WEALTHWAVE, GBETPAY, P2CPAY, BIBPAY, ONEPAY, JAIJAIPAY, DPAY, WORLDPAY, MINERAPAY, ZEENYPAY, APAY24, THUNDERPAY, MYPAYS24, CUBIXPAY, HUBPAY, XUPERMA, ASKPAY, AZPAY, DANARAPAY</td></tr>
+<tr><td><strong>ถอน (withdraw create)</strong> — 37 เจ้า <span class="fileref">controller/main.go:1596+</span></td><td>HYRONPAY, P2WPAY, HUBPAY, AUTOPEERPAY, ANYPAY, ANYPAYTH, COMPAY, K2PAY, MTPAY, UMPAY, SONICPAY, ZPAY, BLACKDOG, MAANPAY, JIBPAYX, VISAPAY, CLOUDPAY, MTMPAY, BIGPAY, WEALTHWAVE, SUGARPAY, GBETPAY, P2CPAY, BIBPAY, JAIJAIPAY, WORLDPAY, MINERAPAY, ZEENYPAY, SUDAHPAY, APAY24, MYPAYS24, CUBIXPAY, GM2PAY, CUTPAYZ, THUNDERPAY, ASKPAY, AZPAY</td></tr>
+<tr><td><strong>ฝากอย่างเดียว</strong></td><td>ONEDAYPAY, KISSPAY, ONEPAY, DPAY, FLAZZPAY, XUPERMA, DANARAPAY, FIRST2PAY (+ PEER2PAY ผ่าน flow แยก)</td></tr>
+</table>
+
+<h3 id="pv-deep">C. Integration deep-dive: CLOUDPAY vs ANYPAYTH (อ่านครบทั้ง package)</h3>
+<div class="grid3">
+<div class="card">
+<strong>CLOUDPAY</strong> <span class="fileref">controller/cloudpay/main.go, func.go</span>
+<ul>
+<li><strong>สร้าง order:</strong> POST <code>{HostSmartPay}/ty/orderPay</code> — payload: mer_no, phone, order_amount, notifyUrl, accNo, mer_order_no, sign</li>
+<li><strong>Sign:</strong> sort field ตามอักษร (ตัด sign) join ด้วย <code>&amp;</code> → ส่ง <code>{sign, privateKey}</code> ไป <strong><code>{ENCRYPTION_ENDPOINT}/api/encrypt</code></strong> ให้ sign RSA แทน (<span class="fileref">func.go:113-120</span>) ⚠️ <strong>private key เดินทางออกนอก service</strong></li>
+<li><strong>Verify response:</strong> ส่งไป <code>/api/decrypt</code> ด้วย publicKey แล้วเทียบ sign string (<span class="fileref">func.go:226-243</span>)</li>
+<li><strong>Callback verify:</strong> MD5(BuildSignString(data)) เทียบ field <code>Sign</code> (<span class="fileref">func.go:253</span>, <span class="fileref">callback.go:4956</span>)</li>
+<li><strong>Balance:</strong> POST <code>{HostSmartPayExternal}/withdraw/balanceQuery</code> (MD5 sign)</li>
+</ul>
+</div>
+<div class="card">
+<strong>ANYPAYTH</strong> <span class="fileref">controller/anypayth/main.go, func.go</span>
+<ul>
+<li><strong>Auth ขาออก:</strong> header <code>x-api-key: {AccessKey}</code> — ไม่ sign body</li>
+<li><strong>Endpoints:</strong> POST <code>/api/v1/deposit</code>, <code>/api/v1/withdraw</code>, <code>/api/v1/withdrawInquiry</code>, GET <code>/api/v1/balance</code></li>
+<li><strong>Callback verify (ดีที่สุดในระบบ):</strong> HMAC-SHA256(apiKey) over <code>{ts}|{refNo}|{amountJSON}|{status}|{ccy}|{payType}|{payDate}</code> + timestamp ±5 นาที กัน replay (<span class="fileref">func.go:28-67</span>) + cross-check <code>objDep.TransactionRef == ReferenceNo</code> (<span class="fileref">callback.go:1689</span>)</li>
+<li><strong>HTTP client:</strong> timeout 60s, <strong>retry 0</strong> (กันยิงซ้ำ) (<span class="fileref">func.go:18-26</span>)</li>
+</ul>
+</div>
+<div class="card info">
+<strong>นัยต่อ v11:</strong> ANYPAYTH คือ template ที่ดีที่สุดของ adapter pattern (HMAC + replay protection + no-retry-on-create) ส่วน CLOUDPAY แสดง anti-pattern ที่ต้องเลิก: ส่ง private key ไป service ภายนอกผ่าน HTTP เพื่อ sign
+</div>
+</div>
+
+<h2 id="layer3">🧠 Layer 3: Business Logic top-5 (อ่านโค้ดจริง)</h2>
+
+<h3>1) <code>controller.Deposit</code> — 3rd-payment <span class="fileref">controller/deposit.go:103</span> ✅</h3>
+<details open><summary>Pseudocode + Decision Table</summary>
+<ol>
+<li>bind + validate (service/office_api/datetime/payment_code ห้ามว่าง)</li>
+<li>PEER2PAY → สลับ code ชั่วคราว + <code>BypassPeer2Pay(accessKey, secretKey)</code> — เชื่อ key จาก request ❗ (<span class="fileref">:117-120,145-148</span>)</li>
+<li>config จาก <code>service_qrpayment</code> → service whitelist (<span class="fileref">:135</span>)</li>
+<li><strong>dedup:</strong> order เก่า (code+service+username+amount) → คืน order เดิม <code>NewOrder=false</code> (<span class="fileref">:151-173</span>); กลุ่ม MAANPAY/ZAPPAY/XPAY/TOPPAY/SPEEDHUBPAY/DPAY ใช้ <code>AmountActual</code> (<span class="fileref">:156-158</span>)</li>
+<li><strong>🔒 Redis lock</strong> <code>&lt;code&gt;:&lt;user&gt;:&lt;amount %.2f&gt;</code> TTL 35s (<span class="fileref">:177-196</span>)</li>
+<li>channel <code>DEPOSIT_BY_MEMBER/AGENT</code> (จาก scope หรือ service==username) → เช็ค <code>DepositAgentOnly</code>/<code>IsNotTopUp</code> (<span class="fileref">:198-206</span>)</li>
+<li>min/max (<span class="fileref">:208</span>) → HENGPAY/IMPAY บังคับ <code>qr_image</code> (<span class="fileref">:215-217</span>)</li>
+<li>order_no → SHA256: E2P/P2CPAY=10, PAPAYAPAY/CLOUDPAY/VISAPAY=20, CUTPAYZ=16, ANYPAY=15, TRUSTPAY=random alphanum 10 (<span class="fileref">:224-235</span>)</li>
+<li><code>SwitchHealthCheck</code> (<span class="fileref">:243</span>) → COREPAY+MemberRegister → <code>VerifyAndRegisterCorePay</code> (<span class="fileref">:250-259</span>) → switch provider → insert <code>qr_payment</code> → ตอบ QR</li>
+</ol>
+<table>
+<tr><th>Given</th><th>Then</th></tr>
+<tr><td>field ขาด / config ปิด / ไม่อยู่ whitelist</td><td>ปฏิเสธพร้อมข้อความเฉพาะ</td></tr>
+<tr><td>order ค้างเงื่อนไขเดียวกัน</td><td>คืน order เดิม ไม่สร้างใหม่</td></tr>
+<tr><td>lock ไม่ได้ / amount นอก min-max / channel ขัด config</td><td>ปฏิเสธ</td></tr>
+<tr><td>health check fail</td><td>"ไม่สามารถใช้งาน payment ได้"</td></tr>
+</table>
+<p><strong>Debt:</strong> lock 35s ไม่มี renewal; lock key ใช้ float; quirks ฝังในโค้ด</p>
+</details>
+
+<h3>2) <code>controller.CallbackDeposit</code> — <span class="fileref">controller/callback.go</span> (~16k บรรทัด)</h3>
+<p>raw body + log ทุกอย่าง → IP whitelist → config → <strong>switch ~45 case</strong> (ดู <a href="#pv-verify">matrix</a>) → เทียบ TransactionRef → status 99 return เร็ว → <code>logs_callback_payment</code> → ⟿ RabbitMQ RPC ≤120s → telegram log<br>
+<strong>Edge:</strong> RabbitMQ fail = log แล้วไปต่อ (<span class="fileref">:274-282</span>) — พึ่ง cron retry; <code>float64 ==</code> (<span class="fileref">:1544</span>); <code>time.Local</code> ปน UTC (<span class="fileref">:1633</span>)</p>
+
+<h3>3) <code>controller.CreateWithdraw</code> — <span class="fileref">controller/withdraw.go:38</span></h3>
+<p>validate → config → ยอดจาก <code>bank_summary</code> (ไม่มี → สร้าง + <code>time.Sleep(5s)</code> ❗ <span class="fileref">:162</span>) หรือ <code>UseDirectBalance</code> → balance API ตรง → cooldown <code>NextTimePayoutByHashLayout</code> (<span class="fileref">:230-241</span>) → สร้าง <code>withdraw_statement</code> (status=0) → switch provider<br>
+<strong>Edge:</strong> <code>balance.Data.Token[0]</code> ไม่เช็ค bounds (<span class="fileref">:157</span>); LUCKYPAY/SWIFTPAY ห้ามทศนิยม (<span class="fileref">:111</span>)</p>
+
+<h3>4) <code>WithdrawBySpeedPay</code> pattern — que_payment <span class="fileref">controllers/withdraw.go:220-290</span></h3>
+<p>6 ขั้นซ้ำทุก provider: GetBalance → เช็ค limit → <strong>หัก bank_summary ก่อน</strong> → provider.Withdraw() → fail = คืนเงิน + 13/12 → สำเร็จ = 16→15→1 + CallbackAllOffice<br>
+<strong>Debt:</strong> ไม่ atomic; magic numbers; float64; <code>_ =</code> ~30 จุด; <code>time.Sleep(5s)</code> สำหรับ DEPOSIT_ONLY (<span class="fileref">:270</span>)</p>
+
+<h3>5) <code>ConnectGateway</code> + <code>FundTransfer</code> — 3rd-gateway <span class="fileref">controller/gateway.go:226,408</span> ✅</h3>
+<p>เช็คสิทธิ์ <code>gateway_config</code> (allow_all / group_ids / allowed − disallowed + <code>supported_bank_systems</code> ต้องมี bank_code, <span class="fileref">:252-263</span>) → TMN PIN login → AES-GCM(<code>AES_KEY_FIX32</code>) → upsert <code>gateway_connect</code> → set-or-push <code>list_connect</code> (<strong>ไม่ atomic</strong> <span class="fileref">:305-350</span>) → helm call (error println ทิ้ง <span class="fileref">:359-362</span>)</p>
+<div class="card warn">
+<strong>🐛 Bug ยืนยัน — <span class="fileref">tmn-one/main.go:172</span></strong>
+<pre><code>resp.Status = confirmResult
+if strings.Contains(resp.Status, "success") {   // ← กลับด้าน! (:201 ฝั่งบัญชีธนาคารใช้ ! ถูกต้อง)
+    return resp, fmt.Errorf("error confirm wallet")
+}</code></pre>
+โอน wallet→wallet สำเร็จแต่ caller ได้ 500 + <code>IsConfirm=true</code> → retry โดยไม่ดู IsConfirm = <strong>โอนซ้ำ</strong>
+</div>
+
+<h2 id="quedetail">⚙️ que_payment internals (ขุดละเอียด)</h2>
+
+<h3 id="q-handlers">Message handlers — 8 type <span class="fileref">rabbitmqpub/amqp.go:310-341 (QueTypeSwitchV2)</span></h3>
+<div class="tablewrap">
+<table>
+<tr><th>Type</th><th>Handler</th><th>ขั้นตอน (DB/provider/callback)</th><th>Error path</th></tr>
+<tr><td><code>DEPOSIT</code></td><td>DepositAgentV2 <span class="fileref">controllers/deposit.go:94-346</span></td><td>อ่าน <code>qr_payment</code> (OrderNo+Service) → กัน double ด้วย <code>is_success==1</code> → config → <code>bank_summary</code> (ไม่มีก็สร้าง + log <code>logs_inc_payment</code>) → เก็บ before_credit → <strong>บวกยอดเข้า summary</strong> → set status=1 → <strong>↩ office</strong> <code>api/Payment/PaymentCreateStatement/{svc}</code> → เก็บ after_credit; dispatch จริงผ่าน switch ~60 case (<span class="fileref">:122-342</span>) ลง <code>depositAgentBySpeedpay</code> — หัก cost: <code>amount − (cost_deposit + cost_withdraw + profit)</code> (<span class="fileref">:348</span>)</td><td>fail = ยอดถูก rollback, callback ค้างให้ cron retry</td></tr>
+<tr><td><code>WITHDRAW</code> / <code>PAYOUT</code></td><td>WithdrawAndPayOutV2 <span class="fileref">controllers/withdraw.go:338</span></td><td><code>que_payment</code> (status ∈ [2,5]) → <code>withdraw_statement</code> → กัน double → lock summary (<code>is_active</code> flag) → เช็ค limit → <strong>หักยอด</strong> → provider.Withdraw() → status 16/15 → ↩ <code>api/WithdrawCallback</code></td><td>fail = refund (<code>REFUND-WITHDRAW</code>) + status 12/13</td></tr>
+<tr><td><code>REFUND</code></td><td>RefundMoneyV2 <span class="fileref">controllers/refund.go:62-134</span></td><td>เฉพาะ statement <code>status==15</code> + ยังไม่ success → บวกคืน <code>amount + cost_pay</code> → status=13 → ↩ WithdrawCallback(13)</td><td>fail = status 12</td></tr>
+<tr><td><code>REPORT_DATA_CURRENT</code></td><td>UpdateReport <span class="fileref">controllers/report.go:21-212</span></td><td>aggregate รายวัน (BOD/EOD <strong>Bangkok UTC+7</strong>) จาก qr_payment / withdraw_statement (status=1, is_success=1) → upsert <code>report_day</code> + <code>report_payment_status</code> — <strong>ใช้ MongoDB session/transaction</strong></td><td>tx abort</td></tr>
+<tr><td><code>REPORT_DATA_OLD</code></td><td>UpdateReport <span class="fileref">report.go:133-207</span></td><td>aggregate รายเดือน → <code>report_deposit</code> / <code>report_withdraw</code></td><td>tx abort</td></tr>
+<tr><td><code>MANUAL_CONFIRM_WITHDRAW</code></td><td>ManualConfirmWithdraw <span class="fileref">withdraw.go:6042</span></td><td>เช็คยอดพอ → หักยอด (ManualConfirm) → status=1</td><td>fail = 12</td></tr>
+<tr><td><code>REFUND-WITHDRAW-OFFICE</code></td><td>RefundWithdrawOffice <span class="fileref">withdraw.go:6094</span></td><td>ถ้า status==15 → refund ยอด → status=4 + "ยกเลิกรายการถอนสำเร็จ"</td><td>—</td></tr>
+</table>
+</div>
+
+<h3 id="q-cron">Cronjobs — 5 ตัว (อ่านครบทุกไฟล์ <span class="fileref">cronjob/, quepub/cornjob.go</span>)</h3>
+<div class="tablewrap">
+<table>
+<tr><th>Job</th><th>รอบ</th><th>Query (collection + filter)</th><th>ทำอะไรต่อรายการ</th><th>Lock / threshold (hardcode)</th></tr>
+<tr><td><strong>StartServV2</strong> <span class="fileref">quepub/cornjob.go:38-217</span></td><td>ทุก 20 วิ</td><td><code>que_payment</code> where payment_name=PAYMENT_NAME</td><td>≤10 workers (semaphore, timeout 30s/งาน) → ดึง withdraw_statement (retry 3 ครั้ง เว้น 5 วิ) → lock summary <code>is_active=1</code> → CallRabbitWithdraw → ปลด lock (defer) → queue status=1</td><td>10 workers · 30s · 3×5s</td></tr>
+<tr><td><strong>ServRetryOrder</strong> <span class="fileref">cronjob/retry-order.go:19-72</span></td><td>ทุก 5 นาที</td><td><code>withdraw_statement</code>: transaction_ref="", status=16, is_success≠1, datetime ∈ [now−3วัน, now−5ชม.], limit 50</td><td>status→4 "รายการถอนหมดอายุ" + callback office ถ้ายังไม่เคย</td><td>3 วัน / 5 ชม. / 50 รายการ</td></tr>
+<tr><td><strong>AutomationRetryCallbackStatus</strong> <span class="fileref">cronjob/automation_retry_callback_status.go:34-75</span></td><td>ทุก 30 นาที</td><td>ฝาก: <code>qr_payment</code> callback_status≠1, status=1, is_success=1, 3 ชม.ย้อนหลัง · ถอน: <code>withdraw_statement</code> callback_status≠1, status≠0, 6 ชม.ย้อนหลัง (limit 50)</td><td>🔒 Redis <code>deposit/withdraw_statement_callback:{svc}{code}{order}</code> TTL 10 นาที → retry CallbackAllOffice → callback_status=1 → sleep 10 วิ/รายการ; <strong>ฝั่งถอน:</strong> status แปลก ๆ ถูก force เป็น 12 "ค้างเกิน 30 นาที"; status=16 เกิน 30 นาที → <strong>refund อัตโนมัติ</strong></td><td>3ชม./6ชม./10นาที lock/30นาที timeout/10วิ sleep</td></tr>
+<tr><td><strong>RecoverBankSummary</strong> <span class="fileref">cronjob/recover_bank_summary.go:18-155</span></td><td>ทุก 10 นาที</td><td><code>bank_summary</code> is_active=1 ที่ update_at เก่ากว่า 15 นาที (= lock ค้าง)</td><td>เช็ค <code>que_payment</code> status=2 ที่เกี่ยว — ไม่มี → ปลด lock; งานค้าง&gt;15 นาที → force status=1 แล้วปลด</td><td>🔒 <code>recover_bank_summary_lock</code> 5 นาที / 15 นาที stale</td></tr>
+<tr><td><strong>StartUpdateRedis</strong> <span class="fileref">cronjob/updateredis.go:30-128</span></td><td>ทุกวัน 23:59:59 (BKK)</td><td><code>service_qrpayment</code> ทั้งหมด</td><td>sync provider list → Redis <code>payment_bank_support</code> (TTL 0 = ถาวร)</td><td>—</td></tr>
+</table>
+</div>
+<div class="card warn"><strong>จุดเสี่ยง:</strong> ถ้า instance <code>TYPE=QUE_CRONJOB</code> ไม่ถูก deploy → ไม่มี retry/recover เลย และไม่มี alert ว่า cron หาย · สอง retry mechanism (ServRetryOrder vs AutomationRetry) เส้นแบ่งไม่ชัด · refund อัตโนมัติเมื่อ status=16 เกิน 30 นาที อาจชนกับ callback provider ที่มาช้า (โอนสำเร็จแต่ถูก refund ไปแล้ว?) — ควรตรวจ inquiry ก่อน refund</div>
+
+<h3 id="q-state">Status State Machine (verified จากโค้ด que_payment)</h3>
+<div class="grid3">
+<div class="card">
+<strong>WithdrawStatement.status</strong>
+<table>
+<tr><th>ค่า</th><th>ความหมาย</th><th>set ที่</th></tr>
+<tr><td>0</td><td>เริ่มต้น/pending</td><td>3rd-payment สร้าง</td></tr>
+<tr><td>2</td><td>queue รับไป validate แล้ว</td><td><span class="fileref">QueRunningV2:119</span></td></tr>
+<tr><td>16</td><td>processing (ส่งเข้า provider)</td><td><span class="fileref">UpdateAndcallbackV2:267</span></td></tr>
+<tr><td>15</td><td>provider รับแล้ว รอ confirm</td><td><span class="fileref">UpdateAndcallbackV2:306</span></td></tr>
+<tr><td>1</td><td>สำเร็จ (final)</td><td>callback ยืนยัน</td></tr>
+<tr><td>12</td><td>error</td><td><span class="fileref">WithdrawAndPayOutV2:343</span> ฯลฯ</td></tr>
+<tr><td>13</td><td>refund/ยกเลิกพร้อมคืนเงิน</td><td><span class="fileref">RefundMoneyV2:125</span></td></tr>
+<tr><td>4</td><td>หมดอายุ/ยกเลิก</td><td><span class="fileref">RetryOrderCallbackAgain:86</span></td></tr>
+</table>
+</div>
+<div class="card">
+<strong>Transition จริง</strong>
+<div class="flow">0 → 2 → 16 ─┬→ 15 ─┬→ 1  (สำเร็จ)
+            │      ├→ 13 (refund หลัง timeout 30 นาที)
+            │      └→ 4  (expire โดย cron 3 วัน)
+            ├→ 12 (error ระหว่างประมวลผล)
+            └→ 13 (provider error → refund)
+
+callback_status: 0 → 1 (ส่ง office สำเร็จ)
+is_success:      0 → 1 (จบจริง — ใช้กัน double-process)</div>
+<p class="meta">⚠️ ฝั่ง 3rd-payment มีการ set 15 ที่ CancelPayout (<span class="fileref">callback.go:1093</span>) — ความหมาย status ระหว่าง 2 repo ไม่ตรงกัน 100% (?) ต้อง normalize ใน v11</p>
+</div>
+<div class="card">
+<strong>QrPayment.status (ฝาก)</strong>
+<table>
+<tr><th>ค่า</th><th>ความหมาย</th></tr>
+<tr><td>0</td><td>pending รอจ่าย</td></tr>
+<tr><td>1</td><td>สำเร็จ</td></tr>
+<tr><td>2</td><td>ล้มเหลว/ปฏิเสธ</td></tr>
+<tr><td>99</td><td>hold — รอตรวจบัญชี/manual (เช่น CheckBankNumber fail)</td></tr>
+</table>
+<strong>QuePayment.status (job)</strong>: 0=init, 2=processing, 5=retry, 1=จบ
+</div>
+</div>
+
+<h3 id="q-obs">Observability: Classifier + Telegram <span class="fileref">observability/classifier/classifier.go:49-148, observability/telegram/notifier.go</span></h3>
+<table>
+<tr><th>Error pattern</th><th>Source label</th><th>Severity</th><th>Remediation (ไทย)</th></tr>
+<tr><td>DeadlineExceeded / "timeout" / "i/o timeout"</td><td><code>upstream:&lt;name&gt;:timeout</code> หรือ <code>internal:timeout</code></td><td>2</td><td>ตรวจ timeout config/retry, ดู latency ใน Grafana Tempo</td></tr>
+<tr><td>"panic" / "recovered"</td><td><code>internal:panic</code></td><td><strong>4</strong></td><td>ฉุกเฉิน! ดู stack trace, พิจารณา restart</td></tr>
+<tr><td>"mongo" / "redis" / "connection refused" / "eof"</td><td><code>internal:db</code></td><td>3</td><td>ตรวจ connection pool</td></tr>
+<tr><td>HTTP 5xx upstream</td><td><code>upstream:&lt;name&gt;:5xx</code></td><td>3</td><td>ติดต่อทีม upstream ถ้าต่อเนื่อง</td></tr>
+<tr><td>HTTP 401 / 403 upstream</td><td><code>upstream:&lt;name&gt;:401/403</code></td><td>2</td><td>ตรวจ API key / whitelist IP</td></tr>
+<tr><td>HTTP 404 upstream</td><td><code>upstream:&lt;name&gt;:404</code></td><td>1</td><td>ตรวจ URL / payment code</td></tr>
+<tr><td>4xx internal</td><td><code>internal:validation</code></td><td>1</td><td>ตรวจ format request</td></tr>
+<tr><td>อื่น ๆ</td><td><code>internal:unknown</code></td><td>2</td><td>ดู trace</td></tr>
+</table>
+<p><strong>Telegram:</strong> dedup 5 นาที (key = SHA256(severity:paymentCode:errorType)) · rate limit 1 msg/วิ (default chat) · <strong>severity 4 → oncall chat ตรง ไม่ rate-limit</strong> · severity 1 ถูกกรองทิ้ง · message มี Trace ID + ลิงก์ Jaeger + แนวทางแก้</p>
+
+<h3 id="q-payload">Callback payloads → office (โครงจริง)</h3>
+<details><summary>3 payload structs: WithdrawCallback / PaymentCreateStatement / CallBackWithdrawAmount</summary>
+<table>
+<tr><th>Endpoint</th><th>Payload (field หลัก)</th><th>หลักฐาน</th></tr>
+<tr><td><code>POST api/WithdrawCallback</code> (channel WITHDRAW)</td><td><code>{orderNo, transaction_id, status, comment, service, balance, cost_pay, payment_code, cost_withdraw, cost_fix_withdraw, bypass_notify_firebase}</code></td><td><span class="fileref">automation_retry_callback_status.go:263-275</span></td></tr>
+<tr><td><code>POST api/WithdrawCallback</code> (channel PAYOUT)</td><td><code>{datetime, amount(หลังหัก cost), bank_code:"PAYMENT", bank_name:&lt;code&gt;, bank_number:&lt;code lower&gt;, comment, operator_name:"AUTO PAYMENT", status, balance, cost_pay, payment_code, order_no, service, ...}</code></td><td><span class="fileref">:277-295</span></td></tr>
+<tr><td><code>POST api/Payment/PaymentCreateStatement/{service}</code></td><td><code>{_id, datetime(local), Date, Time, Channel:&lt;code&gt;, Hash(SHA1), Deposit:AmountCreate, BankNo:username, Status:0, OrderNo, balance, amount_cost, profit, bank_name/number/code(จาก log ตรวจบัญชี), is_approve_bank, bypass_notify_firebase}</code> — worldpay/blackdog_v2: ถ้า AmountActual&gt;AmountCreate และต่าง ≤2.0 ใช้ AmountActual (<span class="fileref">deposit.go:520-522</span>)</td><td><span class="fileref">deposit.go:494-522</span></td></tr>
+<tr><td><code>POST api/Payment/CallBackWithdrawAmount/{service}</code></td><td><code>{datetime, amount = AmountCreate − (Profit + AmountCost), bank_code:"PAYMENT", comment:"เพิ่มทุนถอน PAYMENT-&lt;code&gt;", operator_name:"AUTO PAYMENT", status:0, balance}</code></td><td><span class="fileref">deposit.go:550-572</span></td></tr>
+</table>
+<p class="meta">ทั้งหมดส่งด้วย resty: timeout 60s, retry 3 (wait 5-20s) — สำเร็จ = <code>code==0</code> หรือ <code>msg=="Success"</code> (<span class="fileref">services/callback/main.go:24-74</span>)</p>
+</details>
+
+<h2 id="layer4">🗄️ Layer 4: Data &amp; Integration</h2>
+
+<h3>ER ย่อ</h3>
+<div class="flow">service_qrpayment (config/provider — 93 fields รวม secret plaintext + rabbitmq_url)
+   1 ──&lt; qr_payment          (ฝาก — hash unique sparse)
+   1 ──&lt; withdraw_statement  (ถอน — hash unique)
+   1 ──&lt; bank_summary        (ยอดต่อ service+currency+exchange — lock ด้วย is_active)
+   1 ──&lt; que_payment         (job ถอน — poll โดย StartServV2)
+audit: logs_callback_payment, logs_que_payment, logs_inc_payment, logs_callback_office, logs_system,
+       telegram_log_statement, adjust_statement, transaction_xpay_fail, confirm_bank_deposit
+report: report_day, report_deposit, report_withdraw, report_payment_status, bank_summary_recovery_log
+
+3rd-gateway: gateway_config 1──&lt; gateway_connect &gt;──1 customer_registry (embed list_connect[])
+             + fees_config (Type: PerTransaction/BillingCycle/Percentage, ClientCategory: VIP/Regular/Default)</div>
+<ul>
+<li><strong>Migrations:</strong> ไม่พบทั้ง 3 repo — schema implicit ใน struct; index inline ตอน insert; ชั้นดินประวัติศาสตร์ = field ที่งอกใน ServicePayment (กลุ่ม SWIFTPAY: MerchantID/Token/Secret/IdentityToken/HostSmartPayExternal · กลุ่ม Corepay: ParnerKey/IVCode/PmToken/MemberRegister · กลุ่ม 1daypay: PaymentDeposit/WithdrawKey ฯลฯ)</li>
+<li><strong>Validation ชั้น data:</strong> มีแค่ unique index <code>hash</code>; ไม่มี enum constraint</li>
+</ul>
+
+<h3 id="dd-pay">Data Dictionary (payment) — กางครบใน collapsible</h3>
+<details><summary><strong>QrPayment</strong> (qr_payment — ฝาก) ~50 fields <span class="fileref">model/qr_payment.go</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>Field (bson)</th><th>Type</th><th>ความหมาย</th></tr>
+<tr><td>_id, datetime, username, phone_number, service</td><td>OID/time/string</td><td>ตัวตน + เวลา (service = tenant: es, mt, g2e, ms)</td></tr>
+<tr><td>orderNo, reserve_orderNo, transaction_ref</td><td>string</td><td>เลข order ฝั่งเรา / สำรอง / เลขอ้างอิงฝั่ง provider</td></tr>
+<tr><td>amount, amount_actual, amount_create, amount_cost</td><td>float64 ⚠️</td><td>ยอดขอ / ยอดจริงที่เข้า / ยอดตอนสร้าง / ค่าธรรมเนียม</td></tr>
+<tr><td>cost_deposit, cost_withdraw, profit</td><td>float64</td><td>fee breakdown — สูตรหักที่ que_payment: <code>amount_create − (cost_deposit+cost_withdraw+profit)</code></td></tr>
+<tr><td>status / is_success / callback_status</td><td>int32/int32/int</td><td>0,1,2,99 / 0,1 (กัน double) / 0,1 (ส่ง office แล้ว)</td></tr>
+<tr><td>hash <span class="badge b-purple">unique sparse</span>, hash_layout</td><td>string</td><td>กันซ้ำระดับ DB</td></tr>
+<tr><td>payer_account_no/code/first_name/last_name(_en)</td><td>string</td><td>บัญชีผู้โอน (ใช้ตรวจชื่อ-บัญชี)</td></tr>
+<tr><td>url_qrcode, qr_text, img_payment, deposit_payment_type</td><td>string</td><td>ตัว QR / สลิป / โหมดแสดงผล (BANK | QR | qr_image …)</td></tr>
+<tr><td>account_bank_number/code/name, account_prompt_pay</td><td>string</td><td>บัญชีรับเงิน</td></tr>
+<tr><td>transfer_datetime, start_datetime, expired_datetime</td><td>time/int64</td><td>เวลาโอนจริง / อายุ QR (unix)</td></tr>
+<tr><td>before_credit, after_credit</td><td>float64</td><td>ยอด summary ก่อน/หลัง</td></tr>
+<tr><td>office_api, payment_code, system_code, currency, exchange, channel, scope</td><td>string</td><td>routing + tenant + DEPOSIT_BY_MEMBER/AGENT</td></tr>
+<tr><td>log_callback (LogQrPayment), log_bank_verify[], confirm_service[]</td><td>nested</td><td>audit ใน document + rrn + confirm_statement</td></tr>
+<tr><td>is_refund, order_no_withdraw_refund, is_withdraw, new_order, use_api, is_send_order_check</td><td>bool/string</td><td>flags เชื่อม refund/ถอน</td></tr>
+</table>
+</div>
+</details>
+<details><summary><strong>WithdrawStatement</strong> (withdraw_statement — ถอน) <span class="fileref">model/withdraw_statement.go</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>Field (bson)</th><th>Type</th><th>ความหมาย</th></tr>
+<tr><td>_id, datetime, update_time, transfer_datetime</td><td>OID/time</td><td>เวลา</td></tr>
+<tr><td>amount, before_credit, after_credit</td><td>float64 ⚠️</td><td>ยอดถอน + ยอด summary</td></tr>
+<tr><td>cost_withdraw, cost_fix_withdraw, cost_pay</td><td>float64</td><td>fee % / fee คงที่ / fee provider</td></tr>
+<tr><td>status / is_success / callback_status</td><td>int</td><td>0,2,16,15,1,12,13,4 (ดู <a href="#q-state">state machine</a>)</td></tr>
+<tr><td>bank_code/name/number, phone_number, address, use_bank_id</td><td>string</td><td>ปลายทางโอน</td></tr>
+<tr><td>orderNo, reserve_orderNo, transaction_ref, hash <span class="badge b-purple">unique</span>, hash_layout</td><td>string</td><td>อ้างอิง + กันซ้ำ</td></tr>
+<tr><td>service, system_code, payment_code, office_api, channel, currency, exchange</td><td>string</td><td>tenant + routing (channel: WITHDRAW | PAYOUT)</td></tr>
+<tr><td>access_key, secret_key ⚠️</td><td>string</td><td><strong>credential ฝังใน statement document</strong> (PEER2PAY bypass)</td></tr>
+<tr><td>comment, comment_timeline[] (status 1/3/4)</td><td>nested</td><td>timeline การเปลี่ยนสถานะ</td></tr>
+<tr><td>autopeer_progress[], autopeer_paid, autopeer_remain</td><td>nested</td><td>จ่ายบางส่วนของ AUTOPEER (มี img_slip)</td></tr>
+</table>
+</div>
+</details>
+<details><summary><strong>ServicePayment</strong> (service_qrpayment — config 93 fields) <span class="fileref">model/service_payment.go</span></summary>
+<div class="tablewrap">
+<table>
+<tr><th>กลุ่ม</th><th>Fields</th><th>หมายเหตุ</th></tr>
+<tr><td><strong>ตัวตน</strong></td><td>payment_code, payment_code_manual, payment_name, custom_name, system_code, service, status, payment_type</td><td>payment_type: WITHDRAW_ONLY / DEPOSIT_ONLY / DEPOSIT_AND_WITHDRAW</td></tr>
+<tr><td><strong>Credentials ⚠️ plaintext</strong></td><td>merchant_no, access_key, secret_key, key_code, key_type, client_id, merchant_id, merchant_token, merchant_secret, identity_token (SWIFTPAY), partner_key, iv_code, pm_token (Corepay), merchant_code</td><td>ทั้งหมดเก็บ plaintext ใน Mongo</td></tr>
+<tr><td><strong>Endpoints</strong></td><td>host_smart_pay, host_smart_pay_external, api_qrpay, external_api, callback_api_qrpay_sync/unsync(_payout), path_callback_deposit/withdraw, office_api, payment_detail_url</td><td></td></tr>
+<tr><td><strong>Fee/Limit</strong></td><td>fee_deposit, fee_withdraw, fee_qrpay, add_money, min/max_deposit, min/max_withdraw</td><td>float64</td></tr>
+<tr><td><strong>Infra</strong></td><td>rabbitmq_url ❗, line_token, telegram_bot_setting, whitelist_ip (interface{} — string/array ก็ได้)</td><td>RabbitMQ URL ต่อ config!</td></tr>
+<tr><td><strong>Option flags</strong></td><td>is_true_wallet_support, is_not_topup, is_not_payout, is_fees_switch_withdraw, hook_private_for_xpay, deposit_agent_only, withdraw_agent_only, payout_interval_minutes, is_round_up_decimal</td><td>พฤติกรรมเปลี่ยนได้โดยไม่ deploy</td></tr>
+<tr><td><strong>DepositType (แสดงผล)</strong></td><td>payment_url/text/image/iframe, bank_to_bank, display_type (PROMPTPAY/BANK/QRCODE/QR_AND_BANK/SELECT_TYPE_QR_OR_BANK), use_watermark, label, color_rgba, qr_size, font_size, angle, bank_more_support[]</td><td>รวมการ render QR + watermark</td></tr>
+<tr><td><strong>ServiceDeposit</strong></td><td>username, password, shop_name, manual_transaction, scan_slip, payment_gateway, forbidden_words[], payment_deposit_mode/key/secret_key, fee_bank, fee_system</td><td>มี password provider ฝัง</td></tr>
+<tr><td><strong>ServiceWithdraw</strong></td><td>host_smart_pay_withdraw, host_smart_pay_balance_withdraw, auth_withdraw, uname, pwd, accNo/accBank/accName, path_callback_withdraw, cost_pay, payment_withdraw_key/secret_key</td><td></td></tr>
+<tr><td><strong>อื่น ๆ</strong></td><td>member_register, confirm_bank_deposit, countdown_time, service_whitelist, check_bank_number, split_active, setting_forward, use_direct_balance, use_for_you, is_approve_bank, is_peer_to_peer, currency, exchange, test_result, create_at, update_at</td><td></td></tr>
+</table>
+</div>
+</details>
+<details><summary><strong>QuePayment</strong> + <strong>BankSummary</strong></summary>
+<table>
+<tr><th>Struct</th><th>Fields</th></tr>
+<tr><td>QuePayment (que_payment)</td><td>_id, id_payment_ref (=orderNo), date, type (WITHDRAW/DEPOSIT/PAYOUT/REFUND), type_report, service, system_code, payment_code, payment_name, merchant_no, merchant_code, status (0/2/5/1), create_at, update_at</td></tr>
+<tr><td>BankSummary (bank_summary)</td><td>_id, service, system_code, current_balance (float64 ⚠️), currency, exchange, is_active (ใช้เป็น lock ❗), payment_code, create_at, update_at</td></tr>
+</table>
+</details>
+
+<h3 id="dd-redis">Redis keys (ทั้งระบบ)</h3>
+<table>
+<tr><th>Key pattern</th><th>TTL</th><th>หน้าที่</th><th>repo / หลักฐาน</th></tr>
+<tr><td><code>{paymentCode}:{username}:{amount %.2f}</code></td><td>35s</td><td>lock กันฝากซ้ำ</td><td>3rd-payment <span class="fileref">deposit.go:177</span></td></tr>
+<tr><td><code>trace:cb:{transactionId}:{paymentCode}</code></td><td>30 นาที</td><td>เก็บ traceparent เชื่อม trace payin → callback (~250 จุด)</td><td>3rd-payment <span class="fileref">deposit.go:808, callback.go:532</span></td></tr>
+<tr><td><code>{REDIS_TOKEN_KEY}-{paymentCode}</code></td><td>10 นาที</td><td>cache bearer token BigPay</td><td>3rd-payment <span class="fileref">bigpay/main.go:135,293</span></td></tr>
+<tr><td>bank gateway config key</td><td>6 ชม.</td><td>cache config bank-gateway</td><td>3rd-payment <span class="fileref">banktransfer/bank-gateway.go:223</span></td></tr>
+<tr><td><code>dpay:withdraw:*</code></td><td>15 นาที</td><td>cache callback DPAY</td><td>3rd-payment <span class="fileref">callback.go:661</span></td></tr>
+<tr><td><code>deposit_statement_callback:{svc}{code}{order}</code> / <code>withdraw_statement_callback:…</code></td><td>10 นาที</td><td>lock retry callback (cron)</td><td>que_payment</td></tr>
+<tr><td><code>recover_bank_summary_lock</code></td><td>5 นาที</td><td>lock cron recover</td><td>que_payment</td></tr>
+<tr><td><code>payment_bank_support</code></td><td>ถาวร (refresh รายวัน)</td><td>provider list</td><td>que_payment</td></tr>
+</table>
+
+<h3 id="dd-gw">Entities — 3rd-gateway <span class="fileref">entitys/</span></h3>
+<details><summary><strong>gateway_config · gateway_connect · customer_registry · fees_config</strong> (กางครบ)</summary>
+<table>
+<tr><th>Entity</th><th>Fields หลัก</th><th>หมายเหตุ</th></tr>
+<tr><td><strong>gateway_config</strong></td><td>gateway_name/code, description, is_active, status, <strong>สิทธิ์:</strong> allow_all_customers | group_ids[] | allowed_customer_ids[] − disallowed_customer_ids[], ip_whitelist[] (ยังไม่ enforce ⚠️), endpoints{default/deposit/withdraw/balance}, callbacks{deposit/withdraw} (ยังไม่ใช้), settings{is_deposit, is_withdraw, is_payout, is_topup, is_use_credential_system, is_webhook, is_new_transaction}, fees{deposit/withdraw/topup → rate, fixed_fee, min/max_amount, supported_banks[]}, fee_config_id, additional_config{supported_bank_systems[], deposit/withdraw_bank_list[]}</td><td>นิยาม gateway (ปัจจุบันมีแต่ TMN_ONE/TMN_TWO)</td></tr>
+<tr><td><strong>gateway_connect</strong></td><td>bank_number/name/code, service, customer_id, gateway_name/code/config_id, fees_config_id, <code>hash_connect</code> = SHA256(code+customerId+bankNumber+bankCode), <code>credentials_token</code> (AES-GCM, <code>bson:"-"</code> ใน JSON แต่อยู่ใน DB), total_balance, connect_date, last_transaction_at, status</td><td>1 บัญชี wallet ต่อ 1 doc</td></tr>
+<tr><td><strong>customer_registry</strong></td><td>name, service, project, domain, email, phone, group_ids, parent_customer_id/key, credential{client_id (UUID), api_key (random 32), aes_key}, activation_date, status, is_active, is_deleted, list_connect[] (embed ConnectDetail: connect_id, bank*, gateway*, is_deposit, is_withdraw, is_active, connect_date, status)</td><td>service client (withdraw-auto ฯลฯ)</td></tr>
+<tr><td><strong>fees_config</strong></td><td>type (PerTransaction/BillingCycle/Percentage), client_category (VIP/Regular/Default), profit_details{general/cycle/deposit/withdraw/topup → variable_rate, fixed_charge, is_active, conditions{}}</td><td>โครงสร้างค่า fee แยกตาม tier</td></tr>
+</table>
+</details>
+
+<h2 id="tmn">📱 TrueWallet API Inventory + Crypto (3rd-gateway/gateway-hub/tmn-one)</h2>
+<details open><summary>HTTP calls ไป TMN ทั้งหมด 19 จุด (ทุก call ผ่าน proxy <code>api.tmn.one/proxy.dev.php</code>)</summary>
+<div class="tablewrap">
+<table>
+<tr><th>หน้าที่</th><th>Method + Path</th><th>Req หลัก</th><th>Resp หลัก</th><th>เรียกจาก</th></tr>
+<tr><td>Login (PIN)</td><td>POST api.php (pin/login)</td><td>device_id, pin=SHA256(TmnID+Pin)</td><td>access_token, balance, mobile, kyc</td><td><span class="fileref">login.go:50-74</span></td></tr>
+<tr><td>ดึง token cache</td><td>POST api.php (cmd:get text_storage_obj)</td><td>—</td><td>access_token (enc), shield_id</td><td><span class="fileref">cmd.go:13-28</span></td></tr>
+<tr><td>เก็บ token cache</td><td>POST api.php (cmd:set)</td><td>access_token enc ด้วย key จาก SHA512(TmnID)</td><td>—</td><td><span class="fileref">cmd.go:103-127</span></td></tr>
+<tr><td>ขอ shield_id</td><td>POST api.php (get_shield_id)</td><td>device_id</td><td>shield_id</td><td><span class="fileref">cmd.go:31-43</span></td></tr>
+<tr><td>คำนวณ sign256</td><td>POST api.php (calculate_sign256)</td><td>login_token, device_id, data</td><td>signature</td><td><span class="fileref">cmd.go:45-54</span></td></tr>
+<tr><td>Zoloz metadata / Face verify</td><td>POST api.php (get_zoloz_metadata / face_verify)</td><td>zimInitResp, C2S_PUB_KEY</td><td>productRetCode</td><td><span class="fileref">cmd.go:66-101</span></td></tr>
+<tr><td>Balance</td><td>GET user-profile-composite/v1/users/balance/</td><td>—</td><td>current/available_balance</td><td><span class="fileref">account-detail.go:12-29</span></td></tr>
+<tr><td>History</td><td>GET history-composite/v1/users/transactions/history/?start_date=…&limit=20</td><td>—</td><td>activities[]</td><td><span class="fileref">transaction.go:14-40</span></td></tr>
+<tr><td>P2P verify (draft)</td><td>POST transfer-composite/v2/p2p-transfer/draft-transactions</td><td>receiverId, amount</td><td>draft_transaction_id, reference_key, recipient_name</td><td><span class="fileref">transaction.go:75-110</span></td></tr>
+<tr><td>P2P message</td><td>PUT …/draft-transactions/{id}</td><td>personal_message</td><td>transaction_id</td><td><span class="fileref">transaction.go:149-177</span></td></tr>
+<tr><td>P2P confirm</td><td>POST …/transactions/{id}</td><td>reference_key</td><td>transfer_status</td><td><span class="fileref">transaction.go:179-222</span></td></tr>
+<tr><td>P2P status</td><td>GET …/transactions/{id}/status</td><td>—</td><td>transfer_status</td><td><span class="fileref">transaction.go:268-299</span></td></tr>
+<tr><td>ถอนเข้าธนาคาร (draft)</td><td>POST fund-composite/v1/withdrawal/draft-transaction</td><td>bank_name, bank_account, amount</td><td>draft_transaction_id, fee</td><td><span class="fileref">transaction.go:112-147</span></td></tr>
+<tr><td>ถอนเข้าธนาคาร (confirm)</td><td>POST fund-composite/v3/withdrawal/transaction</td><td>draft_transaction_id</td><td>transaction_status, method</td><td><span class="fileref">transaction.go:224-266</span></td></tr>
+<tr><td>PIN verify (ก่อนถอน)</td><td>POST mobile-auth-service/v1/authentications/pin</td><td>pin hash, method=manual_input</td><td>withdraw_status</td><td><span class="fileref">pin.go:11-41</span></td></tr>
+<tr><td>Face auth (เคส -428)</td><td>POST mobile-auth-service/v1/authentications/face + GET …/{id}/status</td><td>meta_info (ApdToken), ui_type=Cherry</td><td>transaction_id, status</td><td><span class="fileref">face.go:43-117</span></td></tr>
+<tr><td>Device metadata</td><td>POST device-composite/v1/users/device-metadata</td><td>app_name, battery, model, network…</td><td>—</td><td><span class="fileref">face.go:119-196</span></td></tr>
+<tr><td>Voucher (อั่งเปา)</td><td>POST transfer-composite/v1/vouchers/</td><td>amount, detail, voucher_type, mobile</td><td>link_voucher, voucher_id</td><td><span class="fileref">transaction.go:42-73</span></td></tr>
+</table>
+</div>
+<p class="meta">ทุก call แนบ <code>X-Shield-Session-Id</code> + <code>Authorization</code> (access_token) + <code>signature-256</code>; 401 → <code>loginReset()</code> + retry (เสี่ยง loop <span class="fileref">client.go:173-190</span>)</p>
+</details>
+
+<details><summary>Crypto schemes 4 ชุด (step-by-step)</summary>
+<table>
+<tr><th>Scheme</th><th>รายละเอียด</th><th>หลักฐาน</th></tr>
+<tr><td><strong>1. AES-CBC request body</strong> (ทุก api.php call)</td><td>key = SHA512(LoginToken) ตัด 32 bytes แรก · IV = random 16 bytes · PKCS7 pad → ส่ง <code>{"encrypted": hex(IV)+base64(cipher)}</code> + header <code>X-KeyID</code>, UA <code>okhttp/4.4.0/…/&lt;KeyID&gt;</code></td><td><span class="fileref">cryption.go:17-45, client.go:19-102</span></td></tr>
+<tr><td><strong>2. AES-GCM credentials_token</strong></td><td>serialize struct TMNOne ทั้งก้อน (รวม PIN! ⚠️) → AES-256-GCM ด้วย <code>AES_KEY_FIX32</code> (ต้อง 32 bytes) · nonce 12 random · output = base64(nonce+cipher) → เก็บใน <code>gateway_connect.credentials_token</code></td><td><span class="fileref">service/encryption/aes.go:13-43, main.go:257-266</span></td></tr>
+<tr><td><strong>3. Access-token cache</strong></td><td>key = SHA512(TmnID) ตัด 32 bytes · AES-CBC + PKCS7 → ฝากไว้ใน text_storage ของ TMN เอง</td><td><span class="fileref">cryption.go:107-173</span></td></tr>
+<tr><td><strong>4. PIN hashing</strong></td><td><code>SHA256(TmnID + Pin)</code> — ไม่ส่ง plaintext แต่<strong>PIN ดิบค้างใน memory</strong> (struct field)</td><td><span class="fileref">login.go:50-74, cryption.go:77-80</span></td></tr>
+</table>
+</details>
+
+<h2 id="layer5">🧹 Layer 5: Keep / Drop Summary</h2>
+
+<h3>🟢 รู้แน่ vs 🔴 ปริศนา</h3>
+<table>
+<tr><th>หัวข้อ</th><th>สถานะ</th><th>หลักฐาน / สิ่งที่ยังไม่รู้</th></tr>
+<tr><td>flow ฝาก ครบวงจร (payin → callback → queue → office)</td><td><span class="badge b-green">🟢</span></td><td>trace ครบทุก hop พร้อม file:line</td></tr>
+<tr><td>flow ถอน + state machine + cron ตาข่ายนิรภัย</td><td><span class="badge b-green">🟢</span></td><td>verified จาก que_payment ทั้ง 8 handler + 5 cron</td></tr>
+<tr><td>การ verify callback รายตัว ~45 provider</td><td><span class="badge b-green">🟢</span></td><td>matrix ด้านบน — 12 เจ้ามี crypto, ที่เหลือ status-only</td></tr>
+<tr><td>bug FundTransfer กลับด้าน</td><td><span class="badge b-green">🟢</span></td><td><span class="fileref">tmn-one/main.go:172</span> เทียบ <span class="fileref">:201</span></td></tr>
+<tr><td>ความหมาย status 12/13/15/16 ระหว่าง 2 repo ตรงกัน 100%?</td><td><span class="badge b-yellow">🟡</span></td><td>ฝั่ง que_payment ชัด; ฝั่ง 3rd-payment พบ set 15 ที่ CancelPayout — ต้อง normalize (?)</td></tr>
+<tr><td>ใครเรียก <code>/bank-gateway/*</code> และ <code>/call-pm/*</code></td><td><span class="badge b-red">🔴</span></td><td>ไม่พบ caller ใน 25 repo</td></tr>
+<tr><td><code>dp.thezeus.tech/api/initWithdraw</code> ฝั่งรับ</td><td><span class="badge b-red">🔴</span></td><td>installer อยู่นอก repo set</td></tr>
+<tr><td><code>ENCRYPTION_ENDPOINT</code> คือ service อะไร</td><td><span class="badge b-red">🔴</span></td><td>Node.js service (?) — รับ private key ผ่าน HTTP</td></tr>
+<tr><td>env production จริง (host, whitelist)</td><td><span class="badge b-red">🔴</span></td><td>อยู่ใน k8s manifest นอก repo</td></tr>
+<tr><td>go_report consume QUE_PAYMENT_* หรือไม่</td><td><span class="badge b-yellow">🟡 ไม่</span></td><td>queue name ตรง que_payment; ไป go_report เป็น HTTP API_REPORT</td></tr>
+</table>
+
+<h3>Health Score</h3>
+<div class="grid3">
+<div class="card"><div class="score s-red">3/10</div><strong>3rd-payment</strong><p class="meta">callback.go 16k บรรทัด, 132 routes แทบไร้ auth, secret plaintext, float เงิน, test 0, dup 40-50%, ~33 จาก 45 provider ไม่มี crypto verify</p></div>
+<div class="card"><div class="score s-yellow">4/10</div><strong>que_payment</strong><p class="meta">โครง worker/shutdown/observability ดี (classifier+telegram ใช้ได้จริง) แต่ magic status, queue ไม่ durable, ไม่มี DLQ, retry ∞, balance ไม่ atomic, auto-refund 30 นาทีเสี่ยง race</p></div>
+<div class="card"><div class="score s-yellow">5/10</div><strong>3rd-gateway</strong><p class="meta">โครงสะอาดสุด (mongox, Tink, AES-GCM, fees_config) แต่ bug จริง 1, hardcoded key, OTel ปิด, ip_whitelist ไม่ enforce, ไม่มี audit log</p></div>
+</div>
+
+<h3>Technical Debt Inventory</h3>
+<table>
+<tr><th>รายการ</th><th>เสี่ยง</th><th>แก้เมื่อไร</th></tr>
+<tr><td>🐛 FundTransfer กลับด้าน (<span class="fileref">tmn-one/main.go:172</span>)</td><td><span class="badge b-red">สูง</span></td><td><strong>ทันที (1 ตัวอักษร)</strong></td></tr>
+<tr><td>Hardcoded API key dp.thezeus.tech + mongo creds ใน compose</td><td><span class="badge b-red">สูง</span></td><td>ก่อน — secret manager + rotate</td></tr>
+<tr><td>132 routes แทบไม่มี auth (รวม /adjust-balance, /enc-aes, /call-by-req, /call-pm)</td><td><span class="badge b-red">สูง</span></td><td>ก่อน/ระหว่าง migrate</td></tr>
+<tr><td>~33/45 provider callback ไม่มี crypto verify — พึ่ง IP whitelist (toggle ได้)</td><td><span class="badge b-red">สูง</span></td><td>ระหว่าง migrate — บังคับ verify ใน adapter</td></tr>
+<tr><td>Secret plaintext ใน service_qrpayment + private key เดินทางไป ENCRYPTION_ENDPOINT + access/secret key ฝังใน withdraw_statement</td><td><span class="badge b-red">สูง</span></td><td>ระหว่าง migrate</td></tr>
+<tr><td>float64 = เงิน + เทียบ ==</td><td><span class="badge b-red">สูง</span></td><td>v11 ใช้ decimal ตั้งแต่ต้น</td></tr>
+<tr><td>auto-refund เมื่อ status=16 เกิน 30 นาที โดยไม่ inquiry provider ก่อน</td><td><span class="badge b-yellow">กลาง-สูง</span></td><td>ตรวจสอบ + แก้ก่อน migrate (เสี่ยงจ่ายซ้ำ)</td></tr>
+<tr><td>callback.go 16k บรรทัด / switch ซ้ำ 2 repo (dup 40-50%)</td><td><span class="badge b-yellow">กลาง</span></td><td>v11: Provider interface เดียว</td></tr>
+<tr><td>Queue ไม่ durable + ไม่มี DLQ + requeue ∞ + unmarshal err ทิ้งเงียบ</td><td><span class="badge b-yellow">กลาง</span></td><td>v11</td></tr>
+<tr><td>bank_summary lock ด้วย is_active flag + non-atomic</td><td><span class="badge b-yellow">กลาง</span></td><td>v11: outbox/transaction</td></tr>
+<tr><td>Redis lock 35s ไม่มี renewal · timezone Local/UTC ปน · streadway/amqp archived · ไม่มี test</td><td><span class="badge b-yellow">ต่ำ-กลาง</span></td><td>หลัง</td></tr>
+</table>
+
+<div class="grid3">
+<div class="card ok">
+<strong>✅ ต้องลอก (Core Business Value)</strong>
+<ul>
+<li>Integration knowledge ~67 provider: endpoint + sign scheme + order_no quirks + status mapping (matrix ด้านบนคือสรุปสำเร็จรูป)</li>
+<li>Business rules: dedup, lock, channel member/agent, min/max, cooldown, fee breakdown (amount_create−cost−profit)</li>
+<li>State machine ถอน + ตาข่ายนิรภัย cron 5 ตัว (โดยเฉพาะ AutomationRetryCallbackStatus + RecoverBankSummary)</li>
+<li>Classifier + Telegram alert design (severity/dedup/oncall) — ใช้ต่อได้เลย</li>
+<li>โมเดล allow-list + fees_config + AES-GCM ของ 3rd-gateway · ANYPAYTH = template adapter ที่ดีที่สุด</li>
+</ul>
+</div>
+<div class="card warn">
+<strong>❌ โละทิ้ง / เขียนใหม่</strong>
+<ul>
+<li>callback.go ทั้งไฟล์ → per-provider adapter + verify บังคับ</li>
+<li>switch ยักษ์ 2 repo → Provider interface</li>
+<li>/call-pm/*, /bank-gateway/enc-aes, /call-by-req, test routes, StartCronjob comment, service/sudahpay (dir หลง), thorlock ที่ไม่ใช้</li>
+<li>helminstall hardcode → config-driven provisioning</li>
+<li>CLOUDPAY pattern ส่ง private key ออกนอก → sign ใน process</li>
+</ul>
+</div>
+<div class="card info">
+<strong>📨 ส่งต่อ sub-agent</strong>
+<ul>
+<li>auth/secret/callback-verify gap → <code>/security-review</code></li>
+<li>132 routes ไม่มี spec → สร้าง OpenAPI จาก route table นี้ได้เลย</li>
+<li>balance non-atomic + auto-refund race → ออกแบบ outbox + idempotency v11</li>
+</ul>
+</div>
+</div>
+
+<h2 id="layer6">🔍 Layer 6: Feature Deep-Dive</h2>
+
+<h3>🔹 ฝากเงินผ่าน QR (Payin)</h3>
+<div class="flow">[1] Frontend/topupserie → office-api-v10
+  ↓ HTTP POST /api/v2/payin  (3rd-payment :8081 — ไม่มี auth)
+[2] 3rd-payment (deposit.go:103)
+  - validate + whitelist + dedup (คืน order เดิมถ้าซ้ำ)
+  - 🔒 Redis lock 35s → SwitchHealthCheck → switch PaymentName
+  ↓ HTTPS provider (เช่น CLOUDPAY /ty/orderPay — RSA ผ่าน ENCRYPTION_ENDPOINT)
+[3] Provider → qr_url/transaction_ref
+[4] 💾 qr_payment (status=0) → ตอบ QR + countdown
+[5] User จ่าย → Provider
+  ↩ POST /api/v2/callback-payin/:code  (IP whitelist ± signature ตาม matrix)
+[6] 3rd-payment — verify ตาม provider, 💾 logs_callback_payment
+  ⟿ queue:QUE_PAYMENT_&lt;NAME&gt; (RPC ≤120s)
+[7] que_payment DepositAgentV2 — กัน double (is_success), bank_summary += amount,
+    หัก cost = amount_create − (cost_deposit+cost_withdraw+profit)
+  ↓ POST https://&lt;office&gt;/api/Payment/PaymentCreateStatement/&lt;service&gt;
+[8] office เติมเครดิต → code=0
+[9] callback_status=1 → reply ReplyTo → ack
+   (พลาดขั้น 7-8 → cron AutomationRetry เก็บตกทุก 30 นาที ภายใน 3 ชม.)</div>
+<table>
+<tr><th>Scenario</th><th>ผลลัพธ์</th><th>handled?</th></tr>
+<tr><td>ฝากปกติ</td><td>ครบ 9 ขั้น</td><td>✅</td></tr>
+<tr><td>กดซ้ำ</td><td>dedup + lock</td><td>✅</td></tr>
+<tr><td>callback ซ้ำ</td><td>is_success กันที่ que_payment</td><td>✅ (ฝั่ง 3rd-payment ต่างกันต่อ provider ⚠️)</td></tr>
+<tr><td>RabbitMQ ล่ม</td><td>log แล้วไปต่อ — cron เก็บตก (ดีเลย์สูงสุด ~3.5 ชม.)</td><td>⚠️</td></tr>
+<tr><td>ปลอม callback (provider ที่ไม่มี signature)</td><td>ผ่านได้ถ้า IP whitelist ปิด/spoof</td><td>❌</td></tr>
+<tr><td>งานช้ากว่า 35s</td><td>lock หลุด</td><td>❌</td></tr>
+</table>
+
+<h3>🔹 ถอนเงิน (Payout)</h3>
+<div class="flow">[1] office → POST /create-withdraw → 3rd-payment
+[2] เช็คยอด (bank_summary | UseDirectBalance) + cooldown → 💾 withdraw_statement (status=0)
+[3] POST /confirm-withdraw ⟿ queue → que_payment
+[4] WithdrawAndPayOutV2: que_payment(status∈[2,5]) → lock summary(is_active=1)
+    → 💾 bank_summary −= amount → provider.Withdraw() → status=16→15
+  ↩ POST /callback-payout/:code → 3rd-payment → status=1, after_credit
+[5] que_payment ↩ POST api/WithdrawCallback → office ตัดเครดิต
+[6] fail: refund + 13/12 · ค้าง 16 เกิน 30 นาที → cron force 12 + auto-refund ⚠️
+    ค้าง 3 วัน → status=4 expired</div>
+<table>
+<tr><th>Scenario</th><th>ผลลัพธ์</th><th>handled?</th></tr>
+<tr><td>ถอนปกติ / ยอดไม่พอ</td><td>ครบ / ปฏิเสธก่อนหัก</td><td>✅</td></tr>
+<tr><td>provider fail หลังหัก</td><td>refund</td><td>⚠️ ไม่ atomic</td></tr>
+<tr><td>callback provider มาช้ากว่า 30 นาที</td><td><strong>อาจถูก auto-refund ไปก่อนแล้วเงินออกจริงทีหลัง</strong></td><td>❌ ต้อง inquiry ก่อน refund</td></tr>
+<tr><td>message requeue ∞</td><td>พึ่ง is_success ใน handler</td><td>⚠️ ไม่มี DLQ</td></tr>
+</table>
+
+<h3>🔹 เชื่อมบัญชี TrueWallet + โอนเงิน (3rd-gateway)</h3>
+<div class="flow">[1] withdraw-auto → POST /api/connect-geteway (Client-Id + API-Key)
+[2] เช็คสิทธิ์ gateway_config → TMN PIN login (AES-CBC + signature-256 ผ่าน PROXY_URL ได้)
+[3] AccessToken + ShieldID → 🔐 AES-GCM(AES_KEY_FIX32) → 💾 gateway_connect
+    → 💾 customer_registry.list_connect (ไม่ atomic)
+    → POST dp.thezeus.tech/api/initWithdraw (hardcode key, error ถูกกลืน)
+[4] ตอบ balance + info
+
+โอน: POST /api/fund-transfer → InitAccount(decrypt) →
+  TRUEWALLET→TRUEWALLET: verify → putMessage → confirm → 🐛 :172 ตอบ error ทั้งที่สำเร็จ
+  → bank: verify → confirm (อาจต้อง PIN/Face −428) → ✅ :201 ถูกต้อง
+  → update credentials_token + total_balance</div>
+<table>
+<tr><th>Scenario</th><th>ผลลัพธ์</th><th>handled?</th></tr>
+<tr><td>connect + โอนเข้าธนาคาร</td><td>ครบ + Face flow รองรับ</td><td>✅</td></tr>
+<tr><td>โอน wallet→wallet สำเร็จ</td><td>ตอบ 500 ทั้งที่เงินออก</td><td>❌ bug :172</td></tr>
+<tr><td>401 token หมดอายุ</td><td>loginReset + retry</td><td>⚠️ เสี่ยง loop</td></tr>
+<tr><td>helm fail / spam register</td><td>เงียบ / ไม่มี rate limit</td><td>❌</td></tr>
+</table>
+
+<h3>🔹 Cron Safety Net (que_payment)</h3>
+<p>รายละเอียดครบที่ <a href="#q-cron">section Cronjobs</a> — สรุปความเสี่ยง: cron deploy แยก instance ตาม TYPE (หายแล้วไม่มี alert), threshold hardcode ทั้งหมด, auto-refund 30 นาทีไม่ inquiry ก่อน</p>
+
+<h2 id="tldr">📌 TL;DR สำหรับนักพัฒนาใหม่</h2>
+<div class="card info">
+<ol>
+<li><strong>แก้ฝาก/ถอน</strong> → <span class="fileref">3rd-payment/controller/deposit.go:103</span> / <span class="fileref">withdraw.go:38</span>; quirks ต่อ provider ดูจาก <a href="#pv-verify">Provider Matrix</a> ก่อนเปิดโค้ด</li>
+<li><strong>เครดิตลูกค้า</strong> เข้าที่ que_payment → office callback — เครดิตไม่เข้าให้ดู <code>callback_status</code> + cron AutomationRetry (ดีเลย์สูงสุด ~3.5 ชม.)</li>
+<li><strong>config provider = <code>service_qrpayment</code></strong> (93 fields รวม secret + rabbitmq_url) — เปลี่ยน behavior ได้โดยไม่ deploy</li>
+<li>que_payment deploy <strong>ต่อ provider ละ instance</strong> (<code>PAYMENT_NAME</code>) + instance cron แยก (<code>TYPE=QUE_CRONJOB</code>) — เช็คว่า cron มีจริงก่อน debug เรื่อง retry</li>
+<li>status ถอน: <code>0→2→16→15→1</code> สำเร็จ, <code>12</code> error, <code>13</code> refund, <code>4</code> expired — ฝั่งฝาก: <code>0/1/2/99</code></li>
+<li><strong>ห้ามลืม:</strong> bug <span class="fileref">tmn-one/main.go:172</span> · ไม่มี auth บน endpoint การเงิน · float64 = เงิน · auto-refund 30 นาทีเสี่ยงจ่ายซ้ำ</li>
+</ol>
+</div>
+
+<p class="meta">สร้างโดย Claude Code · System Archaeology skill (detailed pass) · 2026-06-12 · คู่กับ <code>docs/archaeology-payment-trio.md</code></p>
+</main>
+</div>
+<a class="toplink" href="#top">↑ ขึ้นบนสุด</a>
+</body>
+</html>
